@@ -111,6 +111,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="block.h" />
+    <ClInclude Include="block_with_container.h" />
+    <ClInclude Include="comdef.h" />
+    <ClInclude Include="container.h" />
+    <ClInclude Include="dedup_containers.h" />
+    <ClInclude Include="dedup_data_set.h" />
+    <ClInclude Include="mem_mgr.h" />
+    <ClInclude Include="dedup_file.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="block.c" />
+    <ClCompile Include="block_with_container.c" />
+    <ClCompile Include="dedup_containers.c" />
+    <ClCompile Include="dedup_data_set.c" />
+    <ClCompile Include="dedup_file.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,4 +14,47 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="dedup_containers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mem_mgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="comdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dedup_data_set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="block.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="block_with_container.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dedup_file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dedup_containers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dedup_data_set.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="block_with_container.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dedup_file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="block.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
 </Project>
