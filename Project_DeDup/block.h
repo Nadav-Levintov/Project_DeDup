@@ -16,6 +16,7 @@ typedef struct block_t
 } Block, *PBlock;
 
 Dedup_Error_Val block_create(PBlock block, uint32 sn,  char * id,  uint32 shared_by_files);
+Dedup_Error_Val block_set_size(PBlock block, uint32 block_size);
 
 typedef struct block_dynamic_array_t
 {

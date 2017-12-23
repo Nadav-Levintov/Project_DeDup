@@ -66,6 +66,8 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, ui
 }
 Dedup_Error_Val dedup_data_set_set_block_size(PDedup_data_set data_set, uint32 block_sn, uint32 block_size)
 {
+	block_set_size(&(data_set->block_arr[block_sn]), block_size);
+
 	return SUCCESS;
 }
 Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, uint32 length)
