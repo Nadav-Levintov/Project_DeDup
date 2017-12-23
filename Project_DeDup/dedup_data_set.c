@@ -70,6 +70,18 @@ Dedup_Error_Val dedup_data_set_set_block_size(PDedup_data_set data_set, uint32 b
 
 	return SUCCESS;
 }
+Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
+{
+	return SUCCESS;
+}
+Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn)
+{
+	return SUCCESS;
+}
+Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set)
+{
+	return SUCCESS;
+}
 Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, uint32 length)
 {
 	char* letter = strtok(line, ",");
