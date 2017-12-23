@@ -117,7 +117,6 @@
     <ClInclude Include="container.h" />
     <ClInclude Include="dedup_containers.h" />
     <ClInclude Include="dedup_data_set.h" />
-    <ClInclude Include="mem_mgr.h" />
     <ClInclude Include="dedup_file.h" />
   </ItemGroup>
   <ItemGroup>

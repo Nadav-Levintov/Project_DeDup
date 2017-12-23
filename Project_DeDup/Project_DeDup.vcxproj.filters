@@ -18,9 +18,6 @@
     <ClInclude Include="dedup_containers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mem_mgr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="comdef.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -4,7 +4,6 @@
 
 #include <string.h>
 #include "comdef.h"
-#include "mem_mgr.h"
 #include "dedup_file.h"
 #include "block.h"
 #include "container.h"
