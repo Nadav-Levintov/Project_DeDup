@@ -87,6 +87,8 @@ Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, u
 	uint32 shared_by_num_files = atoi(strtok(line, ","));
 
 	res = block_create(&(data_set->block_arr[sn]), sn, id,shared_by_num_files);
+
+	return res;
 }
 //Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set);
 //Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn);
