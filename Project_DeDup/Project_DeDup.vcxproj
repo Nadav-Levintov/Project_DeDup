@@ -118,6 +118,7 @@
     <ClInclude Include="dedup_containers.h" />
     <ClInclude Include="dedup_data_set.h" />
     <ClInclude Include="dedup_file.h" />
+    <ClInclude Include="dynamic_array.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="block.c" />

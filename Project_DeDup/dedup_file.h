@@ -21,8 +21,8 @@ Dedup_Error_Val dedup_file_create(PDedup_File file, uint32 sn, uint8 sys_num, ch
 
 typedef struct file_dynamic_array_t
 {
-	uint32 size;
-	uint32 sn_arr;
+	uint32 length;
+	uint32 sn_arr[DYNAMIC_ARRAY_SIZE];
 	struct file_dynamic_array_t* next_arr;
 }File_dynamic_array, *PFile_dynamic_array;
 

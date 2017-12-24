@@ -20,8 +20,8 @@ Dedup_Error_Val block_set_size(PBlock block, uint32 block_size);
 
 typedef struct block_dynamic_array_t
 {
-	uint32 size;
-	uint32 sn_arr;
+	uint32 length;
+	uint32 sn_arr[DYNAMIC_ARRAY_SIZE];
 	struct block_dynamic_array_t* next_arr;
 }Block_dynamic_array, *PBlock_dynamic_array;
 

@@ -38,8 +38,9 @@ typedef struct container_dynamic_array_t
 
 typedef struct Container_with_ref_count_dynamic_array_t
 {
-	uint32 ref_count;
-	PContainer arr;
+	uint32 length;
+	uint32 ref_count_arr[DYNAMIC_ARRAY_SIZE];
+	PContainer arr[DYNAMIC_ARRAY_SIZE];
 	struct Container_with_ref_count_dynamic_array_t* next_arr;
 }Container_with_ref_count_dynamic_array, *PContainer_with_ref_count_dynamic_array;
 
