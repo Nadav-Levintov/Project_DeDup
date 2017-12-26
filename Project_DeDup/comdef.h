@@ -2,14 +2,18 @@
 #ifndef COMDEF_H
 #define COMDEF_H
 
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #define ID_LENGTH 16
 #define PROGRAM_ARG_SIZE 4 
 #define MAX_SYSTEMS 128
 #define DYNAMIC_ARRAY_SIZE 128
+#define POOL_INITIAL_SIZE (DYNAMIC_ARRAY_SIZE * 1024)
 #define POOL_EXTEND_SIZE 128
 
 typedef uint8_t uint8;

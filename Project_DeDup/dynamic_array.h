@@ -3,6 +3,7 @@
 #define DYNAMIC_ARRAY_H
 
 #include "comdef.h"
+#include "memory_pool.h"
 
 /* can we make all of our dynamic arrays of the same type?
 	most of them only store SN (uint32) or pointer to container (which is same size of uin32
@@ -20,62 +21,13 @@ typedef struct dynamic_array_t
 	struct dynamic_array_t* next_arr;
 }Dynamic_array, *PDynamic_array;
 
-Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res) {
-	PDynamic_array curr_array = head;
-	uint32 curr_index = index;
+Dedup_Error_Val dynamic_array_init(PDynamic_array head,PMemory_pool pool, uint32 index);
 
-	while (curr_index > curr_array->length)
-	{
-		if (!curr_array->next_arr)
-		{
-			return DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR;
-		}
-		curr_array = curr_array->next_arr;
-		curr_index -= curr_array->length;
-	}
+Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res);
 
-	*res = curr_array->arr[curr_index];
+Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 val);
 
-	return SUCCESS;
-}
+Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool,  uint32 val);
 
-Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 val) {
-	PDynamic_array curr_array = head;
-	uint32 curr_index = index;
-
-	while (curr_index > curr_array->length)
-	{
-		if (!curr_array->next_arr)
-		{
-			return DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR;
-		}
-		curr_array = curr_array->next_arr;
-		curr_index -= curr_array->length;
-	}
-
-	curr_array->arr[curr_index] = val;
-
-	return SUCCESS;
-}
-
-Dedup_Error_Val dynamic_array_add(PDynamic_array head, uint32 val) {
-	PDynamic_array curr_array = head;
-	uint32 curr_index = curr_array->length - 1;
-
-	while (curr_index + 1 >= DYNAMIC_ARRAY_SIZE)
-	{
-		if (!curr_array->next_arr)
-		{
-			//TODO: add allocation of next array.
-		}
-		curr_array = curr_array->next_arr;
-		curr_index = curr_array->length;
-	}
-
-	curr_array->arr[curr_index] = val;
-	curr_array->length++;
-
-	return SUCCESS;
-}
 
 #endif // !DYNAMIC_ARRAY_H

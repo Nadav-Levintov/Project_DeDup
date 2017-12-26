@@ -7,6 +7,7 @@
 #include "dedup_file.h"
 #include "block.h"
 #include "container.h"
+#include "memory_pool.h"
 #include "block_with_container.h"
 
 typedef struct dedup_data_set_t
@@ -23,6 +24,7 @@ typedef struct dedup_data_set_t
 	bool system_active[MAX_SYSTEMS];
 
 	PBlock_with_container_pool block_with_container_pool;
+	PMemory_pool mem_pool;
 } Dedup_data_set, *PDedup_data_set;
 
 Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_distance, uint32 max_pointers);

@@ -39,6 +39,9 @@
     <ClInclude Include="dynamic_array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="memory_pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dedup_containers.c">
@@ -54,6 +57,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="block.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dynamic_array.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="memory_pool.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

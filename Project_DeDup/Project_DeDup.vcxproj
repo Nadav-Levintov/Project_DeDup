@@ -119,6 +119,7 @@
     <ClInclude Include="dedup_data_set.h" />
     <ClInclude Include="dedup_file.h" />
     <ClInclude Include="dynamic_array.h" />
+    <ClInclude Include="memory_pool.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="block.c" />
@@ -126,6 +127,8 @@
     <ClCompile Include="dedup_containers.c" />
     <ClCompile Include="dedup_data_set.c" />
     <ClCompile Include="dedup_file.c" />
+    <ClCompile Include="dynamic_array.c" />
+    <ClCompile Include="memory_pool.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
