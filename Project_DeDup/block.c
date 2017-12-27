@@ -1,7 +1,12 @@
+#pragma warning(disable : 4996)
 #include "block.h"
 
 Dedup_Error_Val block_init(PBlock block, uint32 sn, char * id, uint32 shared_by_files)
 {
+	block->last_container_sn = BLOCK_NOT_IN_CONTAINER;
+	block->sn = sn;
+	strcpy(id, block->id);
+	block->shared_by_files = shared_by_files;
 	return SUCCESS;
 }
 
@@ -16,7 +21,6 @@ Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 cont
 
 	block->last_container_sn = container_sn;
 	block->last_container_ref_count = 1;
-	block->is_in_container = true;
 	
 	return ret_val;
 }

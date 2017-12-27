@@ -5,6 +5,8 @@
 #include "comdef.h"
 #include "dynamic_array.h"
 
+#define BLOCK_NOT_IN_CONTAINER (0xFFFFFFFFU)
+
 typedef struct block_t
 {
 	uint32 sn;
@@ -14,7 +16,6 @@ typedef struct block_t
 	Dynamic_array container_with_ref_count_array; // even indexes = container SN ; odd indexes = ref count
 	uint32 last_container_sn;
 	uint32 last_container_ref_count;
-	bool is_in_container;
 } Block, *PBlock;
 
 Dedup_Error_Val block_init(PBlock block, uint32 sn,  char * id,  uint32 shared_by_files);

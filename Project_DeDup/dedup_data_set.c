@@ -88,11 +88,12 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 		{
 			curr_block_sn = curr_file->block_with_container_array[block_index].block_sn;
 			curr_block = &(data_set->block_arr[curr_block_sn]);
+			bool not_in_container = curr_block->last_container_sn == BLOCK_NOT_IN_CONTAINER;
 			bool max_distance_passed = (*containers_filled) - curr_block->last_container_sn > data_set->max_distance_between_containers_for_file;
 			bool max_pointers_passed = curr_block->last_container_sn == data_set->max_pointers_to_block;
 
 			/* For each block check if we need to insert it to the current container or not */
-			if (!curr_block->is_in_container || max_distance_passed || max_pointers_passed)
+			if (not_in_container || max_distance_passed || max_pointers_passed)
 			{
 				/* We need to insert current block to the current container */
 				if (curr_container->size + curr_block->size > data_set->max_container_size)
