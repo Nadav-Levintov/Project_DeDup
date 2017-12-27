@@ -1,12 +1,5 @@
 #include "dynamic_array.h"
 
-Dedup_Error_Val dynamic_array_init(PDynamic_array head, PMemory_pool pool, uint32 index)
-{
-	memset(head, 0, sizeof(PDynamic_array));
-	
-	return memory_pool_alloc(pool, DYNAMIC_ARRAY_SIZE, &(head->arr));
-}
-
 Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res) {
 	PDynamic_array curr_array = head;
 	uint32 curr_index = index;

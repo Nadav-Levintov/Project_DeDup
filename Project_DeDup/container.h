@@ -3,47 +3,39 @@
 #define CONTAINER_H
 
 #include "comdef.h"
-#include "block.h"
+#include "dynamic_array.h"
 #include "dedup_file.h"
 
 typedef struct container_file_t
 {
-	PDedup_File file;
+	PDedup_File dedup_file;
 	uint32 print_gen;
-} Container_file_t, *PCntainer_file_t;
+} Container_file, *PContainer_file;
 
 typedef struct container_t
 {
 	uint32 sn;
-	uint32 size;
+	uint32 size; //in bytes
 	uint32 num_of_files_using;
-	PFile_dynamic_array file_array;
+	Dynamic_array file_array; //contains sn of files
 	uint32 num_of_blocks;
-	//TODO: check the issue with: PBlock_dynamic_array
-	struct block_dynamic_array_t* block_array;
+	Dynamic_array block_array; //contains sn of blocks
 } Container, *PContainer;
 
-typedef struct container_with_ref_count_t
-{
-	uint32 container_sn;
-	uint32 ref;
-} Container_with_ref_count, *PCntainer_with_ref_count;
+
+Dedup_Error_Val container_add_file(PContainer container, PMemory_pool pool, uint32 file_sn);
+Dedup_Error_Val container_add_block(PContainer container, PMemory_pool pool, uint32 block_sn, uint32 block_size);
+
 
 typedef struct container_dynamic_array_t
 {
-	uint32 size;
-	PContainer arr;
+	uint32 length;
+	Container arr[DYNAMIC_ARRAY_SIZE];
 	struct container_dynamic_array_t* next_arr;
 }Container_dynamic_array, *PContainer_dynamic_array;
 
-typedef struct Container_with_ref_count_dynamic_array_t
-{
-	uint32 length;
-	uint32 ref_count_arr[DYNAMIC_ARRAY_SIZE];
-	PContainer arr[DYNAMIC_ARRAY_SIZE];
-	struct Container_with_ref_count_dynamic_array_t* next_arr;
-}Container_with_ref_count_dynamic_array, *PContainer_with_ref_count_dynamic_array;
+Dedup_Error_Val  container_dynamic_array_get(PContainer_dynamic_array head, uint32 index, PContainer* res);
 
-
+Dedup_Error_Val  container_dynamic_array_add_and_get(PContainer_dynamic_array head, PMemory_pool pool, PContainer* res);
 
 #endif // !CONTAINER_H

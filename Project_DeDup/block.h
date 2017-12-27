@@ -3,27 +3,23 @@
 #define BLOCK_H
 
 #include "comdef.h"
-#include "container.h"
+#include "dynamic_array.h"
 
 typedef struct block_t
 {
 	uint32 sn;
 	char id[ID_LENGTH];
 	uint32 size;
-	uint32 num_of_files_using;
-	Container_with_ref_count_dynamic_array cwrc_array;
+	uint32 shared_by_files;
+	Dynamic_array container_with_ref_count_array; // even indexes = container SN ; odd indexes = ref count
 	uint32 last_container_sn;
+	uint32 last_container_ref_count;
+	bool is_in_container;
 } Block, *PBlock;
 
-Dedup_Error_Val block_create(PBlock block, uint32 sn,  char * id,  uint32 shared_by_files);
-Dedup_Error_Val block_set_size(PBlock block, uint32 block_size);
-
-typedef struct block_dynamic_array_t
-{
-	uint32 length;
-	uint32 sn_arr[DYNAMIC_ARRAY_SIZE];
-	struct block_dynamic_array_t* next_arr;
-}Block_dynamic_array, *PBlock_dynamic_array;
-
+Dedup_Error_Val block_init(PBlock block, uint32 sn,  char * id,  uint32 shared_by_files);
+Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 container_sn);
+Dedup_Error_Val block_advance_last_container_ref_count(PBlock block);
+Dedup_Error_Val block_get_container_sn_and_ref_count(PBlock block, uint32* container_sn, uint32* ref_count);
 
 #endif // !BLOCK_H

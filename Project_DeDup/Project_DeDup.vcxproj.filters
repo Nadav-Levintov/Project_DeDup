@@ -65,5 +65,8 @@
     <ClCompile Include="memory_pool.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="container.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
