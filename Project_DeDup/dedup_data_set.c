@@ -30,7 +30,7 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 
 	return SUCCESS;
 }
-Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, uint32 length)
+Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line)
 {
 	if (strcmp(strtok(line, ","), "F") != 0)
 		return INVALID_ARGUMENT_FAILURE;
@@ -53,7 +53,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, ui
 
 	/* The #blocks is known so we will not use dynamic array here */
 	PBlock_with_container bwc;
-	block_with_container_pool_alloc(data_set->block_with_container_pool, block_amount, &bwc);
+	block_with_container_pool_alloc(data_set->block_with_container_pool, block_amount*sizeof(Block_with_container), &bwc);
 
 	uint32 block_sn, block_size;
 	for (uint32 i = 0; i < block_amount; i++)
@@ -79,18 +79,30 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 	PContainer_dynamic_array container_arr = &(data_set->container_arr);
 	ret_val = container_dynamic_array_get(container_arr, 0, &curr_container);
 	assert(ret_val == SUCCESS);
+	uint32 currentSystemNum = 0;
 
 	for (curr_file_sn = 0; curr_file_sn < data_set->num_of_files; curr_file_sn++)
 	{
 		curr_file = &(data_set->file_arr[curr_file_sn]);
+
+		// check if new system and update sys_array
+		if (curr_file->sys_num != currentSystemNum)
+		{
+			assert(curr_file->sys_num < currentSystemNum);
+			data_set->system_active[currentSystemNum] = true;
+			currentSystemNum = curr_file->sys_num;
+			data_set->system_file_index[currentSystemNum] = curr_file_sn;
+		}
+
 		/* For each file iterate over all blocks */
 		for (uint32 block_index = 0; block_index < curr_file->block_amount; block_index++)
 		{
 			curr_block_sn = curr_file->block_with_container_array[block_index].block_sn;
 			curr_block = &(data_set->block_arr[curr_block_sn]);
+
 			bool not_in_container = curr_block->last_container_sn == BLOCK_NOT_IN_CONTAINER;
 			bool max_distance_passed = (*containers_filled) - curr_block->last_container_sn > data_set->max_distance_between_containers_for_file;
-			bool max_pointers_passed = curr_block->last_container_sn == data_set->max_pointers_to_block;
+			bool max_pointers_passed = curr_block->last_container_ref_count == data_set->max_pointers_to_block;
 
 			/* For each block check if we need to insert it to the current container or not */
 			if (not_in_container || max_distance_passed || max_pointers_passed)
@@ -120,10 +132,8 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			}
 			else
 			{
-				/* Block is already in a container, lets update the container with the new file sn and the file with the container sn */
+				/* Block is already in a container, lets update the container with the new file sn and the file with the container sn, also update continer ref count for block */
 				ret_val = container_add_file(curr_container, data_set->mem_pool, curr_file_sn);
-				assert(ret_val == SUCCESS);
-				ret_val = block_advance_last_container_ref_count(curr_block);
 				assert(ret_val == SUCCESS);
 				ret_val = block_advance_last_container_ref_count(curr_block);
 				assert(ret_val == SUCCESS);
@@ -138,13 +148,50 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 }
 Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn)
 {
+	Dedup_Error_Val ret = SUCCESS;
+	if (!data_set->system_active[system_sn])
+	{
+		return SUCCESS;
+	}
+
+	uint32 curr_file_sn = data_set->system_file_index[system_sn], curr_block_sn = 0, curr_continer_sn = 0, curr_ref_count = 0;
+	PDedup_File curr_file = &(data_set->file_arr[curr_file_sn]);
+	PContainer curr_container = NULL;
+	PBlock curr_block = NULL;
+	PDynamic_array container_array = &(data_set->container_arr);
+	while (curr_file_sn < data_set->num_of_files && curr_file->sys_num == system_sn)
+	{
+		for (uint32 block_index = 0; block_index < curr_file->block_amount; block_index++)
+		{
+			curr_block_sn = curr_file->block_with_container_array[block_index].block_sn;
+			curr_continer_sn = curr_file->block_with_container_array[block_index].container_sn;
+			curr_block = &(data_set->block_arr[curr_block_sn]);
+			dynamic_array_get(container_array, curr_continer_sn, &curr_container);
+
+			ret = container_del_file(curr_container, curr_file_sn);
+			assert(ret == SUCCESS);
+			ret = block_container_decrece_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
+			assert(ret == SUCCESS);
+			if (curr_ref_count == 0)
+			{
+				ret = container_del_block(curr_container, curr_block_sn, curr_block->size);
+				assert(ret == SUCCESS);
+			}
+		}
+
+		curr_file_sn++;
+		curr_file = &(data_set->file_arr[curr_file_sn]);
+	}
+
+	data_set->system_active[system_sn] = false;
+
 	return SUCCESS;
 }
 Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set)
 {
 	return SUCCESS;
 }
-Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, uint32 length)
+Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line)
 {
 	char* letter = strtok(line, ",");
 	if (!((strcmp(letter, "B") == 0 && data_set->is_block_file) || (strcmp(letter, "P") == 0 && !data_set->is_block_file)))
@@ -166,4 +213,5 @@ Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, u
 
 	return res;
 }
+
 

@@ -50,8 +50,5 @@ Dedup_Error_Val memory_pool_destroy(PMemory_pool *pool)
 		pool_to_free = next_pool;
 	}
 
-	free(*pool);
-	*pool = NULL;
-
 	return SUCCESS;
 }

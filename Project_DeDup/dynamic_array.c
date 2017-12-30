@@ -60,3 +60,27 @@ Dedup_Error_Val dynamic_array_add(PDynamic_array head,PMemory_pool pool, uint32 
 
 	return SUCCESS;
 }
+
+bool dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index)
+{
+	PDynamic_array curr_array = head;
+	uint32 curr_index = 0, curr_array_index = 0;
+
+	while ((curr_index + (curr_array_index * DYNAMIC_ARRAY_SIZE)) < head->length)
+	{
+		if (curr_index >= DYNAMIC_ARRAY_SIZE)
+		{
+			curr_array = curr_array->next_arr;
+			curr_index = 0;
+			curr_array_index++;
+		}
+
+		if (curr_array->arr[curr_index] == val)
+		{
+			*index = curr_index + (curr_array_index * DYNAMIC_ARRAY_SIZE);
+			return true;
+		}
+	}
+
+	return false;
+}

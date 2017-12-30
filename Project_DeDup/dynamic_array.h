@@ -18,5 +18,7 @@ Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 v
 
 Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool,  uint32 val);
 
+bool dynamic_array_contains(PDynamic_array head,  uint32 val, uint32* index);
+
 
 #endif // !DYNAMIC_ARRAY_H

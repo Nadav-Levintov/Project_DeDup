@@ -23,6 +23,36 @@ Dedup_Error_Val container_add_block(PContainer container, PMemory_pool pool, uin
 	return ret_val;
 }
 
+Dedup_Error_Val container_del_file(PContainer container, uint32 file_sn)
+{
+	PDynamic_array file_array = &(container->file_array);
+	uint32 file_index_in_container;
+	Dedup_Error_Val ret_val = SUCCESS;
+	if (dynamic_array_contains(file_array, file_sn, &file_index_in_container))
+	{
+		ret_val = dynamic_array_update(file_array, file_index_in_container, REMOVED_SN);
+		assert(ret_val == SUCCESS);
+	}
+
+	return SUCCESS;
+}
+
+Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn,uint32 size)
+{
+	PDynamic_array block_array = &(container->block_array);
+	uint32 block_index_in_container;
+	Dedup_Error_Val ret_val = SUCCESS;
+	if (dynamic_array_contains(block_array, block_sn, &block_index_in_container))
+	{
+		ret_val = dynamic_array_update(block_array, block_index_in_container, REMOVED_SN);
+		assert(ret_val == SUCCESS);
+	}
+
+	container->size -= size;
+
+	return SUCCESS;
+}
+
 Dedup_Error_Val container_dynamic_array_get(PContainer_dynamic_array head, uint32 index, PContainer* res)
 {
 	PContainer_dynamic_array curr_array = head;
