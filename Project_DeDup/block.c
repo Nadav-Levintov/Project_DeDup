@@ -1,4 +1,3 @@
-#pragma warning(disable : 4996)
 #include "block.h"
 
 Dedup_Error_Val block_init(PBlock block, uint32 sn, char * id, uint32 shared_by_files)
@@ -44,7 +43,7 @@ Dedup_Error_Val block_container_decrece_ref_count(PBlock block, uint32 container
 	{
 		ret = dynamic_array_get(container_with_ref_arr, container_index_in_arr + 1, ref_count);
 		assert(ret == SUCCESS);
-		*ref_count--;
+		(*ref_count)--;
 		ret = dynamic_array_update(container_with_ref_arr, container_index_in_arr + 1, *ref_count);
 		assert(ret == SUCCESS);
 	}

@@ -18,19 +18,23 @@ Dedup_Error_Val parse_file(char * file_name, PDedup_data_set data_set)
 {
 	Dedup_Error_Val res = SUCCESS;
 	FILE *fptr, *dir_temp_file ;
+	strcpy(data_set->file_name_for_dir, strtok(file_name, "."));
+	strcat(data_set->file_name_for_dir, "_temp_file" );
 
 	fptr = fopen(file_name, "r");
 	assert(fptr != NULL);
-	fptr = fopen(strcat(strtok(file_name, "."), "temp_dir" ), "a");
+
+	dir_temp_file = fopen(data_set->file_name_for_dir, "a");
 	assert(fptr != NULL);
-	// open file
+
+
 
 	/*Read header of file*/
-	Dedup_Error_Val parse_header(fptr, data_set);
+	res = parse_header(fptr, data_set);
 
 	char line[LENGTH_LENGHT];
 
-	// loop over file and read first letter and activate the relevant function
+	/* loop over file and read first letter and activate the relevant function */
 
 	while (fgets(line, sizeof(line), fptr))
 	{
@@ -61,7 +65,7 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set)
 	char line[LENGTH_LENGHT];
 
 	uint32 line_index = 0;
-	while (fgets(line, sizeof(line), fd) && line_index < 5)
+	while (fgets(line, sizeof(line), fd) && line[0] == '#')
 	{
 		char* prefix = strtok(line, ":");
 		if (strcmp(prefix, "#Num files") == 0)
@@ -70,6 +74,19 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set)
 			data_set->num_of_dirs = atoi(strtok(line, ":"));
 		if (strcmp(prefix, "#Num blocks") == 0 || strcmp(prefix, "#Num physical files") == 0)
 			data_set->num_of_blocks = atoi(strtok(line, ":"));
+		line_index++;
 	}
 	return SUCCESS;
+}
+
+Dedup_Error_Val print_data_set(PDedup_data_set data_set, char *fileName)
+{
+	FILE *fptr;
+
+	fptr = fopen(fileName, "r");
+	assert(fptr != NULL);
+
+	return dedup_data_set_print_active_systems(data_set, fptr);
+
+	fclose(fptr);
 }

@@ -28,7 +28,6 @@ Dedup_Error_Val container_add_block(PContainer container, PMemory_pool pool, uin
 Dedup_Error_Val container_del_file(PContainer container, uint32 file_sn);
 Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn, uint32 block_size);
 
-
 typedef struct container_dynamic_array_t
 {
 	uint32 length;

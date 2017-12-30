@@ -25,6 +25,7 @@ typedef struct dedup_data_set_t
 	uint32 max_container_size; // in bytes
 	uint32 system_file_index[MAX_SYSTEMS];
 	bool system_active[MAX_SYSTEMS];
+	char file_name_for_dir[MAX_FILE_NAME];
 
 	PBlock_with_container_pool block_with_container_pool;
 	PMemory_pool mem_pool;
@@ -36,6 +37,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line);
 Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line);
 Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set);
 Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn);
-Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set);
+Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, FILE *pFile);
+Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set);
 
 #endif // !DEDUP_DATA_SET_H

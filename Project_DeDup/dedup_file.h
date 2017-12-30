@@ -4,6 +4,7 @@
 
 #include "comdef.h"
 #include "block_with_container.h"
+#include <stdio.h>
 
 typedef struct dedup_file_t
 {
