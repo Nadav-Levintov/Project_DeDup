@@ -27,7 +27,7 @@ typedef struct dedup_data_set_t
 	bool system_active[MAX_SYSTEMS];
 	char file_name_for_dir[MAX_FILE_NAME];
 
-	PBlock_with_container_pool block_with_container_pool;
+	Block_with_container_pool block_with_container_pool;
 	PMemory_pool mem_pool;
 } Dedup_data_set, *PDedup_data_set;
 

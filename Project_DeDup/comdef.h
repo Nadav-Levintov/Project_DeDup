@@ -19,6 +19,7 @@
 #define POOL_EXTEND_SIZE 128
 #define REMOVED_SN 0xFFFFFFFFU
 #define INDEX_NOT_FOUND 0xFFFFFFFFU
+#define BLOCK_CONTAINER_POOL_INITIAL_SZIZE 1024*1024
 
 typedef uint8_t uint8;
 typedef uint32_t uint32;

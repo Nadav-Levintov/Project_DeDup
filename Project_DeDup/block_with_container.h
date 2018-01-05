@@ -26,7 +26,7 @@ typedef struct block_with_container_pool_t
 	PBlock_with_container_pool_node current;
 } Block_with_container_pool, *PBlock_with_container_pool;
 
-Dedup_Error_Val block_with_container_pool_init(PBlock_with_container_pool pool, uint32 size);
+Dedup_Error_Val block_with_container_pool_init(PBlock_with_container_pool pool);
 Dedup_Error_Val block_with_container_pool_alloc(PBlock_with_container_pool pool, uint32 size, PBlock_with_container* arr);
 Dedup_Error_Val block_with_container_pool_destroy(PBlock_with_container_pool pool);
 

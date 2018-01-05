@@ -15,6 +15,8 @@ Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_di
 
 Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_of_files, uint32 num_of_blocks)
 {
+	Dedup_Error_Val res = SUCCESS;
+
 	memset(data_set, 0, sizeof(Dedup_data_set));
 
 	// This is known in advance so we use malloc because this is only being done one time.
@@ -32,7 +34,13 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 		return ALLOCATION_FAILURE;
 	}
 
-	return SUCCESS;
+	res = block_with_container_pool_init(&data_set->block_with_container_pool);
+	if(res != SUCCESS)
+	{
+		free(data_set->block_arr);
+		free(data_set->file_arr);
+	}
+	return res;
 }
 Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line)
 {
@@ -54,8 +62,8 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line)
 	uint32 block_amount = atoi(strtok(NULL, ","));
 
 	/* The #blocks is known so we will not use dynamic array here */
-	PBlock_with_container bwc;
-	block_with_container_pool_alloc(data_set->block_with_container_pool, block_amount*sizeof(Block_with_container), &bwc);
+	PBlock_with_container bwc_array;
+	block_with_container_pool_alloc(&data_set->block_with_container_pool, block_amount*sizeof(Block_with_container), &bwc_array);
 
 	uint32 block_sn, block_size;
 	for (uint32 i = 0; i < block_amount; i++)
@@ -63,15 +71,13 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line)
 		block_sn = atoi(strtok(NULL, ","));
 		block_size = atoi(strtok(NULL, ","));
 		data_set->block_arr[block_sn].size = block_size;
-		bwc[i].block_sn = block_sn;
+		bwc_array[i].block_sn = block_sn;
 	}
 
 	uint32 sys_num = atoi(strtok(id_cpy, "_"));
 
-	res = dedup_file_create(&(data_set->file_arr[sn]), sn, sys_num, id, dir_sn, block_amount, bwc);
+	res = dedup_file_create(&(data_set->file_arr[sn]), sn, sys_num, id, dir_sn, block_amount, bwc_array);
 	assert(res == SUCCESS);
-
-
 
 	return SUCCESS;
 }
