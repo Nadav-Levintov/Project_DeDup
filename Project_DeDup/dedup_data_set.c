@@ -5,20 +5,22 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile, PContainer pContainer);
 
 
-Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_distance, uint32 max_pointers)
+Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_distance, uint32 max_pointers, uint32 containers_max_size)
 {
 	data_set->max_distance_between_containers_for_file = max_distance;
 	data_set->max_pointers_to_block = max_pointers;
+	data_set->max_container_size = containers_max_size;
 
 	return SUCCESS;
 }
 
-Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_of_files, uint32 num_of_blocks)
+Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_of_files, uint32 num_of_blocks, uint32 num_of_dirs)
 {
 	Dedup_Error_Val res = SUCCESS;
 
 	memset(data_set, 0, sizeof(Dedup_data_set));
 
+	data_set->num_of_dirs = num_of_dirs;
 	// This is known in advance so we use malloc because this is only being done one time.
 	data_set->num_of_blocks = num_of_blocks;
 	data_set->block_arr = malloc(sizeof(Block)*num_of_blocks);
