@@ -42,6 +42,28 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 	}
 	return res;
 }
+Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
+{
+	assert(NULL != data_set);
+	data_set-> file_arr
+	int i;
+
+	/*Destroy all blocks*/
+	free(data_set->block_arr);
+
+	/*Destroy all files*/
+	free(data_set->file_arr);
+
+	/*Destroy block_with_container_pool*/
+	block_with_container_pool_destroy(data_set->block_with_container_pool);
+
+	/*Destroy memory pool*/
+	memory_pool_destroy(data_set->mem_pool);
+
+	return SUCCESS;
+}
+
+
 Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line)
 {
 	if (strcmp(strtok(line, ","), "F") != 0)
@@ -294,11 +316,6 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, FI
 	/*close file*/
 	fclose(pTempFile);
 
-	return SUCCESS;
-}
-
-Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
-{
 	return SUCCESS;
 }
 

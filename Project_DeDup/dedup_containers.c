@@ -90,3 +90,15 @@ Dedup_Error_Val print_data_set(PDedup_data_set data_set, char *fileName)
 
 	fclose(fptr);
 }
+
+Dedup_Error_Val delete_system(PDedup_data_set data_set, uint32 system_num)
+{
+	//TODO
+	return SUCCESS;
+}
+
+Dedup_Error_Val read_user_input(PDedup_data_set data_set)
+{
+	//TODO
+	return SUCCESS;
+}
