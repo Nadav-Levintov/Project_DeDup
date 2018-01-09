@@ -13,20 +13,21 @@ Dedup_Error_Val memory_pool_alloc(PMemory_pool pool, uint32 size, uint32 ** res)
 	PMemory_pool pool_to_alloc_from = pool;
 	uint32 pool_to_alloc_from_index = pool->next_free_pool_index;
 
-	assert(size < POOL_INITIAL_SIZE);
+	assert(size_of_uint32_to_alloc < POOL_INITIAL_SIZE);
 
 	for (uint32 i = 0; i < pool_to_alloc_from_index; i++)
 	{
 		pool_to_alloc_from = pool_to_alloc_from->next_pool;
 	}
 
-	if (POOL_INITIAL_SIZE >= (pool->next_free_index + size_of_uint32_to_alloc))
+	if (POOL_INITIAL_SIZE <= (pool->next_free_index + size_of_uint32_to_alloc))
 	{
 		pool_to_alloc_from->next_pool = malloc(sizeof(Memory_pool));
 		if (!pool_to_alloc_from->next_pool)
 		{
 			return ALLOCATION_FAILURE;
 		}
+		memset(pool_to_alloc_from->next_pool, 0, sizeof(Memory_pool));
 		pool->next_free_index = 0;
 		pool->next_free_pool_index++;
 		pool_to_alloc_from = pool_to_alloc_from->next_pool;
@@ -38,10 +39,10 @@ Dedup_Error_Val memory_pool_alloc(PMemory_pool pool, uint32 size, uint32 ** res)
 	return SUCCESS;
 }
 
-Dedup_Error_Val memory_pool_destroy(PMemory_pool *pool)
+Dedup_Error_Val memory_pool_destroy(PMemory_pool pool)
 {
 	PMemory_pool next_pool = NULL;
-	PMemory_pool pool_to_free = (*pool)->next_pool;
+	PMemory_pool pool_to_free = pool->next_pool;
 
 	while (pool_to_free)
 	{

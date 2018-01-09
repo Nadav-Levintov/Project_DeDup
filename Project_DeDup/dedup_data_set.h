@@ -28,7 +28,7 @@ typedef struct dedup_data_set_t
 	char file_name_for_dir[MAX_FILE_NAME];
 
 	Block_with_container_pool block_with_container_pool;
-	PMemory_pool mem_pool;
+	Memory_pool mem_pool;
 } Dedup_data_set, *PDedup_data_set;
 
 Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_pointers, uint32 containers_max_size, uint32 max_distance);

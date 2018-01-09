@@ -21,6 +21,7 @@ typedef struct block_t
 Dedup_Error_Val block_init(PBlock block, uint32 sn,  char * id,  uint32 shared_by_files);
 Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 container_sn);
 Dedup_Error_Val block_advance_last_container_ref_count(PBlock block);
+bool container_with_ref_array_dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index);
 Dedup_Error_Val block_get_container_sn_and_ref_count(PBlock block, uint32* container_sn, uint32* ref_count);
 Dedup_Error_Val block_container_decrece_ref_count(PBlock block, uint32 container_sn, uint32* ref_count);
 #endif // !BLOCK_H

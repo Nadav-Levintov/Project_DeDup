@@ -42,7 +42,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	fptr = fopen(file_name, "r");
 	assert(fptr != NULL);
 
-	dir_temp_file = fopen(data_set->file_name_for_dir, "a");
+	dir_temp_file = fopen(data_set->file_name_for_dir, "w");
 	assert(fptr != NULL);
 
 	/*Read header of file*/
@@ -121,24 +121,24 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 
 	while(true)
 	{
-	    printf("Please write what you wish to do: /n");
-	    printf("option 1: delete_system <system number>/n");
-	    printf("option 2: print_all <file name> /n");
-	    printf("option 3: destroy /n");
-	    scanf("%[^\n]s", &command_buffer);
+	    printf("Please write what you wish to do: \n");
+	    printf("option 1: delete_system <system number>\n");
+	    printf("option 2: print_all <file name> \n");
+	    printf("option 3: destroy \n");
+	    scanf(" %[^\n]s", &command_buffer);
 
 	    /*option 3*/
 	    if(strcmp(command_buffer,"destroy")==0)
 	    {
 	    	res = dedup_data_set_destroy(data_set);
-	    	printf("Good buy\n");
+	    	printf("Good bye\n");
 	    	return res;
 	    }
 
 	    /*option 1*/
 	    if(strcmp(command_buffer,"delete_system") == 0)
 	    {
-	    	scanf("%[^\n]s", &command_buffer);
+	    	scanf(" %[^\n]s", &command_buffer);
 	    	res = dedup_data_set_delete_system(data_set, atoi(command_buffer));
 
 	    	assert(res == SUCCESS);
@@ -146,13 +146,13 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 	    }else if(strcmp(command_buffer,"print_all") == 0)
 	    {
 	    	/*option 2*/
-	    	scanf("%[^\n]s", &command_buffer);
+	    	scanf(" %[^\n]s", &command_buffer);
 	    	res = print_data_set(data_set, command_buffer);
 	    	assert(res == SUCCESS);
 	    	printf("Data was printed to %s\n", command_buffer);
 	    }else
 	    {
-	    	printf("Illegal command/n");
+	    	printf("Illegal command\n");
 	    }
 
 	}

@@ -4,7 +4,7 @@ Dedup_Error_Val container_add_file(PContainer container, PMemory_pool pool, uint
 {
 	Dedup_Error_Val ret_val = SUCCESS;
 
-	ret_val =  dynamic_array_add(&(container->file_array), pool, file_sn);
+	ret_val = dynamic_array_add(&(container->file_array), pool, file_sn);
 	assert(ret_val == SUCCESS);
 	container->num_of_files_using++;
 
@@ -31,13 +31,14 @@ Dedup_Error_Val container_del_file(PContainer container, uint32 file_sn)
 	if (dynamic_array_contains(file_array, file_sn, &file_index_in_container))
 	{
 		ret_val = dynamic_array_update(file_array, file_index_in_container, REMOVED_SN);
+		container->num_of_files_using--;
 		assert(ret_val == SUCCESS);
 	}
 
 	return SUCCESS;
 }
 
-Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn,uint32 size)
+Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn, uint32 size)
 {
 	PDynamic_array block_array = &(container->block_array);
 	uint32 block_index_in_container;
@@ -47,7 +48,7 @@ Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn,uint32
 		ret_val = dynamic_array_update(block_array, block_index_in_container, REMOVED_SN);
 		assert(ret_val == SUCCESS);
 	}
-
+	container->num_of_blocks--;
 	container->size -= size;
 
 	return SUCCESS;
@@ -58,7 +59,7 @@ Dedup_Error_Val container_dynamic_array_get(PContainer_dynamic_array head, uint3
 	PContainer_dynamic_array curr_array = head;
 	uint32 curr_index = index;
 
-	while (curr_index > curr_array->length)
+	while (curr_index > curr_array->length - 1)
 	{
 		if (!curr_array->next_arr)
 		{
@@ -76,9 +77,10 @@ Dedup_Error_Val container_dynamic_array_get(PContainer_dynamic_array head, uint3
 Dedup_Error_Val container_dynamic_array_add_and_get(PContainer_dynamic_array head, PMemory_pool pool, PContainer* res)
 {
 	PContainer_dynamic_array curr_array = head;
-	uint32 curr_index = curr_array->length - 1;
+	uint32 curr_index = curr_array->length;
+	uint32 curr_arry_index = 0;
 
-	while (curr_index > DYNAMIC_ARRAY_SIZE)
+	while (curr_index > DYNAMIC_ARRAY_SIZE - 1)
 	{
 		if (!curr_array->next_arr)
 		{
@@ -89,11 +91,11 @@ Dedup_Error_Val container_dynamic_array_add_and_get(PContainer_dynamic_array hea
 		}
 		curr_array = curr_array->next_arr;
 		curr_index = curr_array->length;
+		curr_arry_index++;
 	}
 
-	curr_array->arr[curr_index].sn = curr_array->length;
+	curr_array->arr[curr_index].sn = (curr_arry_index*DYNAMIC_ARRAY_SIZE) + curr_array->length;
 	*res = &(curr_array->arr[curr_index]);
-	
 	curr_array->length++;
 
 	return SUCCESS;

@@ -34,12 +34,36 @@ Dedup_Error_Val block_advance_last_container_ref_count(PBlock block)
 	return ret_val;
 }
 
+bool container_with_ref_array_dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index)
+{
+	PDynamic_array curr_array = head;
+	uint32 curr_index = 0, curr_array_index = 0;
+
+	while (curr_array)
+	{
+		for (curr_index = 0; curr_index < DYNAMIC_ARRAY_SIZE; curr_index+=2) //+2 because odd indexs are for refs
+		{
+			if (curr_array->arr[curr_index] == val)
+			{
+				*index = curr_index + (curr_array_index * DYNAMIC_ARRAY_SIZE);
+				return true;
+			}
+
+		}
+
+		curr_array = curr_array->next_arr;
+		curr_array_index++;
+	}
+
+	return false;
+}
+
 Dedup_Error_Val block_container_decrece_ref_count(PBlock block, uint32 container_sn, uint32* ref_count)
 {
 	Dedup_Error_Val ret = SUCCESS;
 	uint32 container_index_in_arr = 0;
 	PDynamic_array container_with_ref_arr = &(block->container_with_ref_count_array);
-	if (dynamic_array_contains(container_with_ref_arr, container_sn, &container_index_in_arr))
+	if (container_with_ref_array_dynamic_array_contains(container_with_ref_arr, container_sn, &container_index_in_arr))
 	{
 		ret = dynamic_array_get(container_with_ref_arr, container_index_in_arr + 1, ref_count);
 		assert(ret == SUCCESS);

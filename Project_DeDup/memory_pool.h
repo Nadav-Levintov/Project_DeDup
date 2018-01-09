@@ -13,6 +13,6 @@ typedef struct memory_pool_t
 
 Dedup_Error_Val memory_pool_init(PMemory_pool pool);
 Dedup_Error_Val memory_pool_alloc(PMemory_pool pool,uint32 size, uint32** res);
-Dedup_Error_Val memory_pool_destroy(PMemory_pool *pool);
+Dedup_Error_Val memory_pool_destroy(PMemory_pool pool);
 
 #endif // !MEMORY_POOL_H
