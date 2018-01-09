@@ -4,9 +4,10 @@
 Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file);
 Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile, PContainer pContainer);
 
-
-Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_distance, uint32 max_pointers, uint32 containers_max_size)
+Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 containers_max_size, uint32 max_distance, uint32 max_pointers)
 {
+	memset(data_set, 0, sizeof(Dedup_data_set));
+
 	data_set->max_distance_between_containers_for_file = max_distance;
 	data_set->max_pointers_to_block = max_pointers;
 	data_set->max_container_size = containers_max_size;
@@ -17,8 +18,6 @@ Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_di
 Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_of_files, uint32 num_of_blocks, uint32 num_of_dirs)
 {
 	Dedup_Error_Val res = SUCCESS;
-
-	memset(data_set, 0, sizeof(Dedup_data_set));
 
 	data_set->num_of_dirs = num_of_dirs;
 	// This is known in advance so we use malloc because this is only being done one time.
@@ -47,8 +46,6 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 {
 	assert(NULL != data_set);
-	data_set-> file_arr
-	int i;
 
 	/*Destroy all blocks*/
 	free(data_set->block_arr);
@@ -57,10 +54,10 @@ Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 	free(data_set->file_arr);
 
 	/*Destroy block_with_container_pool*/
-	block_with_container_pool_destroy(data_set->block_with_container_pool);
+	block_with_container_pool_destroy(&(data_set->block_with_container_pool));
 
 	/*Destroy memory pool*/
-	memory_pool_destroy(data_set->mem_pool);
+	memory_pool_destroy(&(data_set->mem_pool));
 
 	return SUCCESS;
 }
@@ -116,7 +113,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 	PContainer_dynamic_array container_arr = &(data_set->container_arr);
 	ret_val = container_dynamic_array_get(container_arr, 0, &curr_container);
 	assert(ret_val == SUCCESS);
-	uint32 currentSystemNum = 0;
+	uint32 currentSystemNum = 1;
 
 	for (curr_file_sn = 0; curr_file_sn < data_set->num_of_files; curr_file_sn++)
 	{
@@ -250,9 +247,14 @@ Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line)
 	return res;
 }
 
-Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, FILE *pFile)
+Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, char *file_name)
 {
+
 	Dedup_Error_Val res = SUCCESS;
+	FILE *pFile;
+
+	pFile = fopen(file_name, "w");
+	assert(pFile != NULL);
 
 	/*write files*/
 	int system_num;
@@ -295,7 +297,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, FI
 
 	/*write directories*/
 	FILE *pTempFile = NULL;
-	char line[LENGTH_LENGHT];
+	char line[LINE_LENGTH];
 	pTempFile = fopen(data_set->file_name_for_dir, "r");
 	assert(pTempFile != NULL);
 	char* prefix = NULL;
@@ -324,9 +326,9 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, FI
 Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file)
 {
 	Dedup_Error_Val res = SUCCESS;
-	char buffer[LENGTH_LENGHT];
-	char tmpArray[LENGTH_LENGHT];
-	uint32 containers[pDedup_file->block_amount];
+	char buffer[LINE_LENGTH];
+	char tmpArray[LINE_LENGTH];
+	uint32 *container_sns = malloc((pDedup_file->block_amount)*sizeof(uint32));
 	uint32 containersIndx = 0;
 	strcat(buffer, "F,");
 	sprintf(buffer, "%d", pDedup_file->sn);
@@ -339,8 +341,8 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 	strcat(buffer, tmpArray);
 
 
-	int containerNumInArray;
-	int containerSn;
+	uint32 containerNumInArray;
+	uint32 containerSn;
 	PContainer pContainer = NULL;
 
 	for (containerNumInArray = 0; containerNumInArray < pDedup_file->block_amount; containerNumInArray++)
@@ -351,10 +353,10 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 		assert(res == SUCCESS);
 
 		bool new_contaier = true;
-		int i;
+		uint32 i;
 		for(i=0; i < containersIndx; i++)
 		{
-			if(containerSn == containers[i])
+			if(containerSn == container_sns[i])
 			{
 				new_contaier = false;
 			}
@@ -362,7 +364,7 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 		if(new_contaier)
 		{
 			/*Add containrSn to containers*/
-			containers[containersIndx] = containerSn;
+			container_sns[containersIndx] = containerSn;
 			containersIndx ++ ;
 
 			strcat(buffer, ",");
@@ -376,14 +378,15 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 	}
 
 	fprintf(pFile, "%s", buffer);
+	free(container_sns);
 	return res;
 }
 
 Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile, PContainer pContainer)
 {
 	Dedup_Error_Val res = SUCCESS;
-	char buffer[LENGTH_LENGHT];
-	char tmpArray[LENGTH_LENGHT];
+	char buffer[LINE_LENGTH];
+	char tmpArray[LINE_LENGTH];
 
 	/* Write first line of the container*/
 	strcat(buffer, "C,");
@@ -397,7 +400,7 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 	sprintf(tmpArray, "%d", pContainer->num_of_files_using);
 	strcat(buffer, tmpArray);
 
-	int index;
+	uint32 index;
 	uint32 value;
 	PContainer container = NULL;
 
@@ -425,7 +428,7 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 
 	/* Write second line of the container*/
 
-	memset(buffer, 0, LENGTH_LENGHT);
+	memset(buffer, 0, LINE_LENGTH);
 
 	strcat(buffer, "M,");
 	sprintf(buffer, "%d", pContainer->sn);

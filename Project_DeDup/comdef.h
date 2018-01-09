@@ -10,7 +10,7 @@
 #include <assert.h>
 
 #define ID_LENGTH 16
-#define LENGTH_LENGHT 10000
+#define LINE_LENGTH 10000
 #define PROGRAM_ARG_SIZE 5
 #define MAX_SYSTEMS 128
 #define MAX_FILE_NAME 128

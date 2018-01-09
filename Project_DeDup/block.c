@@ -4,7 +4,7 @@ Dedup_Error_Val block_init(PBlock block, uint32 sn, char * id, uint32 shared_by_
 {
 	block->last_container_sn = BLOCK_NOT_IN_CONTAINER;
 	block->sn = sn;
-	strcpy(id, block->id);
+	strcpy(block->id, id);
 	block->shared_by_files = shared_by_files;
 	return SUCCESS;
 }

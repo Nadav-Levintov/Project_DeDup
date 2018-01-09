@@ -68,5 +68,8 @@
     <ClCompile Include="container.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="makefile">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
