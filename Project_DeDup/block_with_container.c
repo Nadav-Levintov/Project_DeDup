@@ -4,7 +4,7 @@ Dedup_Error_Val private_allocate_block_with_container_pool_node(PBlock_with_cont
 {
 
 	pnode->next_empty_index = 0;
-	pnode->array = (PBlock_with_container) malloc(sizeof(Block_with_container)*size);
+	pnode->array = (PBlock_with_container) calloc(size,sizeof(Block_with_container));
 	if(pnode->array == NULL)
 	{
 		return ALLOCATION_FAILURE;
@@ -20,7 +20,7 @@ Dedup_Error_Val block_with_container_pool_init(PBlock_with_container_pool pPool)
 	assert(NULL != pPool);
 
 	/*Create PBlock_with_container_pool_node and allocate the first array*/
-	PBlock_with_container_pool_node pnode = (PBlock_with_container_pool_node) malloc(sizeof(Block_with_container_pool_node));
+	PBlock_with_container_pool_node pnode = (PBlock_with_container_pool_node) calloc(1,sizeof(Block_with_container_pool_node));
 	if(pnode == NULL)
 	{
 		return ALLOCATION_FAILURE;
@@ -54,7 +54,7 @@ Dedup_Error_Val block_with_container_pool_alloc(
 	if ((pPool->current->pool_size - pPool->current->next_empty_index) < size)
 	{
 		PBlock_with_container_pool_node pnode =
-				malloc(sizeof(Block_with_container_pool_node));
+				calloc(1,sizeof(Block_with_container_pool_node));
 
 		if(pnode == NULL)
 		{

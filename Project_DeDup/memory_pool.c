@@ -22,12 +22,11 @@ Dedup_Error_Val memory_pool_alloc(PMemory_pool pool, uint32 size, uint32 ** res)
 
 	if (POOL_INITIAL_SIZE <= (pool->next_free_index + size_of_uint32_to_alloc))
 	{
-		pool_to_alloc_from->next_pool = malloc(sizeof(Memory_pool));
+		pool_to_alloc_from->next_pool = calloc(1,sizeof(Memory_pool));
 		if (!pool_to_alloc_from->next_pool)
 		{
 			return ALLOCATION_FAILURE;
 		}
-		memset(pool_to_alloc_from->next_pool, 0, sizeof(Memory_pool));
 		pool->next_free_index = 0;
 		pool->next_free_pool_index++;
 		pool_to_alloc_from = pool_to_alloc_from->next_pool;

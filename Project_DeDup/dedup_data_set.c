@@ -22,21 +22,22 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 	data_set->num_of_dirs = num_of_dirs;
 	// This is known in advance so we use malloc because this is only being done one time.
 	data_set->num_of_blocks = num_of_blocks;
-	data_set->block_arr = malloc(sizeof(Block)*num_of_blocks);
+	data_set->block_arr = calloc(num_of_blocks, sizeof(Block));
+
 	if (data_set->block_arr == NULL)
 	{
 		return ALLOCATION_FAILURE;
 	}
-	memset(data_set->block_arr, 0, sizeof(Block)*num_of_blocks);
+
 
 	data_set->num_of_files = num_of_files;
-	data_set->file_arr = malloc(sizeof(Dedup_File)*num_of_files);
+	data_set->file_arr = calloc(num_of_files, sizeof(Dedup_File));
 	if (data_set->file_arr == NULL)
 	{
 		free(data_set->block_arr);
 		return ALLOCATION_FAILURE;
 	}
-	memset(data_set->file_arr, 0, sizeof(Dedup_File)*num_of_files);
+
 
 	res = block_with_container_pool_init(&data_set->block_with_container_pool);
 	if (res != SUCCESS)
@@ -157,8 +158,8 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 					//assert(data_set->max_container_size > curr_block->size);
 					if (data_set->max_container_size < curr_block->size)
 					{
-						printf("Block with SN= %d size is larger than the Max container size!\n", curr_block->sn);
-						printf("Block with SN= %d size is: %d and the max allowed size is:%d\n", curr_block->sn, curr_block->size, data_set->max_container_size);
+						printf("Block with SN= %u size is larger than the Max container size!\n", curr_block->sn);
+						printf("Block with SN= %u size is: %u and the max allowed size is:%u\n", curr_block->sn, curr_block->size, data_set->max_container_size);
 						//TODO: create a clean exit function - mainly del the temp DIR file...
 						assert(0);
 					}
@@ -347,17 +348,17 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 	Dedup_Error_Val res = SUCCESS;
 	char buffer[LINE_LENGTH] = { 0 };
 	char tmpArray[LINE_LENGTH] = { 0 };
-	uint32 *container_sns = malloc((pDedup_file->block_amount) * sizeof(uint32));
+	uint32 *container_sns = calloc((pDedup_file->block_amount) , sizeof(uint32));
 	uint32 containersIndx = 0;
 	strcat(buffer, "F,");
-	sprintf(tmpArray, "%d", pDedup_file->sn);
+	sprintf(tmpArray, "%u", pDedup_file->sn);
 	strcat(buffer, tmpArray);
 
 	strcat(buffer, ",");
 	strcat(buffer, pDedup_file->id);
 
 	strcat(buffer, ",");
-	sprintf(tmpArray, "%d", pDedup_file->sn);
+	sprintf(tmpArray, "%u", pDedup_file->sn);
 	strcat(buffer, tmpArray);
 
 
@@ -388,11 +389,11 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 			containersIndx++;
 
 			strcat(buffer, ",");
-			sprintf(tmpArray, "%d", containerSn);
+			sprintf(tmpArray, "%u", containerSn);
 			strcat(buffer, tmpArray);
 
 			strcat(buffer, ",");
-			sprintf(tmpArray, "%d", pContainer->size);
+			sprintf(tmpArray, "%u", pContainer->size);
 			strcat(buffer, tmpArray);
 		}
 	}
@@ -410,15 +411,15 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 
 	/* Write first line of the container*/
 	strcat(buffer, "C,");
-	sprintf(tmpArray, "%d", pContainer->sn);
+	sprintf(tmpArray, "%u", pContainer->sn);
 	strcat(buffer, tmpArray);
 
 	strcat(buffer, ",");
-	sprintf(tmpArray, "%d", pContainer->size);
+	sprintf(tmpArray, "%u", pContainer->size);
 	strcat(buffer, tmpArray);
 
 	strcat(buffer, ",");
-	sprintf(tmpArray, "%d", pContainer->num_of_files_using);
+	sprintf(tmpArray, "%u", pContainer->num_of_files_using);
 	strcat(buffer, tmpArray);
 
 	uint32 index;
@@ -435,7 +436,7 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 				memset(buffer, 0, LINE_LENGTH);
 			}
 			strcat(buffer, ",");
-			sprintf(tmpArray, "%d", value);
+			sprintf(tmpArray, "%u", value);
 			strcat(buffer, tmpArray);
 		}
 	}
@@ -447,15 +448,15 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 	memset(buffer, 0, LINE_LENGTH);
 
 	strcat(buffer, "M,");
-	sprintf(tmpArray, "%d", pContainer->sn);
+	sprintf(tmpArray, "%u", pContainer->sn);
 	strcat(buffer, tmpArray);
 
 	strcat(buffer, ",");
-	sprintf(tmpArray, "%d", pContainer->size);
+	sprintf(tmpArray, "%u", pContainer->size);
 	strcat(buffer, tmpArray);
 
 	strcat(buffer, ",");
-	sprintf(tmpArray, "%d", pContainer->num_of_blocks);
+	sprintf(tmpArray, "%u", pContainer->num_of_blocks);
 	strcat(buffer, tmpArray);
 
 	for (index = 0; index < pContainer->num_of_blocks; index++)
@@ -469,7 +470,7 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 				memset(buffer, 0, LINE_LENGTH);
 			}
 			strcat(buffer, ",");
-			sprintf(tmpArray, "%d", value);
+			sprintf(tmpArray, "%u", value);
 			strcat(buffer, tmpArray);
 		}
 	}

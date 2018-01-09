@@ -142,7 +142,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 	    	res = dedup_data_set_delete_system(data_set, atoi(command_buffer));
 
 	    	assert(res == SUCCESS);
-	    	printf("System %d was deleted\n",  atoi(command_buffer));
+	    	printf("System %u was deleted\n",  atoi(command_buffer));
 	    }else if(strcmp(command_buffer,"print_all") == 0)
 	    {
 	    	/*option 2*/
