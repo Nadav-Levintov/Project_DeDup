@@ -328,7 +328,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 
 	while (fgets(line, sizeof(line), pTempFile)) 
 	{
-		/*	what if line is larger than LINE_LENGTH? we may lose data here because lines in file may be larger than 1000
+		/*	TODO: what if line is larger than LINE_LENGTH? we may lose data here because lines in file may be larger than 1000
 			then the fgets takes the next 1000 chars (until \n) and the first char is not the active system so we will
 			not print the line!
 		*/
