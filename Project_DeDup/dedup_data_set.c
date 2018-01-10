@@ -326,8 +326,12 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 	uint32 systen_sn = 0;
 
 
-	while (fgets(line, sizeof(line), pTempFile))
+	while (fgets(line, sizeof(line), pTempFile)) 
 	{
+		/*	what if line is larger than LINE_LENGTH? we may lose data here because lines in file may be larger than 1000
+			then the fgets takes the next 1000 chars (until \n) and the first char is not the active system so we will
+			not print the line!
+		*/
 		/*Check if this directory is from active system*/
 		strcpy(line_temp, line);
 		prefix = strtok(line_temp, ",");
