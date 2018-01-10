@@ -340,6 +340,8 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 		}
 	}
 
+	/*TODO: when destroying some lines are added to the file, need to check why this happens and not when we close the temp. */
+
 	/*close file*/
 	fclose(pTempFile);
 
@@ -425,10 +427,8 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 	sprintf(tmpArray, "%u", pContainer->num_of_files_using);
 	strcat(buffer, tmpArray);
 
-	uint32 index;
-	uint32 value;
-
-	for (index = 0; index < pContainer->num_of_files_using; index++)
+	uint32 index=0, value, printed_files = 0;
+	while (printed_files < pContainer->num_of_files_using)
 	{
 		assert(DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR != dynamic_array_get(&pContainer->file_array, index, &value));
 		if (value != REMOVED_SN)
@@ -441,7 +441,9 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 			strcat(buffer, ",");
 			sprintf(tmpArray, "%u", value);
 			strcat(buffer, tmpArray);
+			printed_files++;
 		}
+		index++;
 	}
 	strcat(buffer, "\n");
 	fputs(buffer, pFile);
@@ -461,8 +463,9 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 	strcat(buffer, ",");
 	sprintf(tmpArray, "%u", pContainer->num_of_blocks);
 	strcat(buffer, tmpArray);
-
-	for (index = 0; index < pContainer->num_of_blocks; index++)
+	index = 0;
+	uint32 num_of_blocks_printed = 0;
+	while (num_of_blocks_printed < pContainer->num_of_blocks)
 	{
 		assert(DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR != dynamic_array_get(&pContainer->block_array, index, &value));
 		if (value != REMOVED_SN)
@@ -475,7 +478,9 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 			strcat(buffer, ",");
 			sprintf(tmpArray, "%u", value);
 			strcat(buffer, tmpArray);
+			num_of_blocks_printed++;
 		}
+		index++;
 	}
 	strcat(buffer, "\n");
 	fputs(buffer, pFile);

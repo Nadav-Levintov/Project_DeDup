@@ -27,10 +27,11 @@ Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 cont
 Dedup_Error_Val block_advance_last_container_ref_count(PBlock block)
 {
 
-	Dedup_Error_Val ret_val = dynamic_array_update(&(block->container_with_ref_count_array), block->container_with_ref_count_array.length - 1, block->last_container_ref_count);
-	assert(ret_val == SUCCESS);
 	block->last_container_ref_count++;
-
+	Dedup_Error_Val ret_val = dynamic_array_update(&(block->container_with_ref_count_array),
+		block->container_with_ref_count_array.length - 1, block->last_container_ref_count);
+	assert(ret_val == SUCCESS);
+	
 	return ret_val;
 }
 
