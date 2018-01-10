@@ -105,7 +105,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 			line_ptr = strtok(NULL, ",");
 			if (!line_ptr)
 			{
-				/* There are lines of greater length
+				/* TODO: There are lines of greater length
 				than LINE_LENGTH, then we lost data
 				This solution does not work yet, need to fix
 				*/
@@ -116,7 +116,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 			line_ptr = strtok(NULL, ",");
 			if (!line_ptr)
 			{
-				/* There are lines of greater length
+				/* TODO: There are lines of greater length
 				than LINE_LENGTH, then we lost data
 				This solution does not work yet, need to fix
 				*/

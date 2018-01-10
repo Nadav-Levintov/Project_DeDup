@@ -72,6 +72,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 		}
 		else if (strcmp(prefix, "D") == 0)
 		{
+			/* TODO: there is an issue here, we get multipale dirs in same line of one of the dirs line is larger than LINE_LENGTH or something*/
 			strcpy(curr_line, line);
 			fputs(curr_line, dir_temp_file);
 		}
