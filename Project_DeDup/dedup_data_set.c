@@ -184,7 +184,10 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			else
 			{
 				/* Block is already in a container, lets update the container with the new file sn and the file with the container sn, also update continer ref count for block */
-				ret_val = container_add_file(curr_container, &data_set->mem_pool, curr_file_sn);
+				PContainer temp;
+				ret_val= container_dynamic_array_get(container_arr, curr_block->last_container_sn, &temp);
+				assert(ret_val == SUCCESS);
+				ret_val = container_add_file(temp, &data_set->mem_pool, curr_file_sn);
 				assert(ret_val == SUCCESS);
 				ret_val = block_advance_last_container_ref_count(curr_block);
 				assert(ret_val == SUCCESS);
@@ -219,8 +222,8 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 			curr_block_sn = curr_file->block_with_container_array[block_index].block_sn;
 			curr_continer_sn = curr_file->block_with_container_array[block_index].container_sn;
 			curr_block = &(data_set->block_arr[curr_block_sn]);
-			container_dynamic_array_get(container_array, curr_continer_sn, &curr_container);
-
+			ret=container_dynamic_array_get(container_array, curr_continer_sn, &curr_container);
+			assert(ret == SUCCESS);
 			ret = container_del_file(curr_container, curr_file_sn);
 			assert(ret == SUCCESS);
 			ret = block_container_decrece_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
