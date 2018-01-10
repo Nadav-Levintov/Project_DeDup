@@ -69,7 +69,7 @@ bool dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index)
 
 	while (curr_array)
 	{
-		for (curr_index = 0; curr_index < DYNAMIC_ARRAY_SIZE; curr_index++)
+		for (curr_index = 0; curr_index < curr_array->length; curr_index++)
 		{
 			if (curr_array->arr[curr_index] == val)
 			{
