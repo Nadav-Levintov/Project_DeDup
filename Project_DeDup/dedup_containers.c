@@ -1,8 +1,9 @@
 #include "dedup_containers.h"
 
+Dedup_data_set data_set;
+
 int main(int argc, char *argv[]) {
 	Dedup_Error_Val res;
-	Dedup_data_set data_set;
 
 	if (argc != PROGRAM_ARG_SIZE)
 	{
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
 	dedup_data_set_init_args(&data_set, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
 
 	//Read file
-	res =  parse_file(argv[1], &data_set);
+	res = parse_file(argv[1], &data_set);
 	assert(res == SUCCESS);
 
 	//Insert data into containers
@@ -33,11 +34,11 @@ int main(int argc, char *argv[]) {
 Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 {
 	Dedup_Error_Val res = SUCCESS;
-	FILE *fptr, *dir_temp_file ;
+	FILE *fptr, *dir_temp_file;
 	char temp_file_name[MAX_FILE_NAME];
 	strcpy(temp_file_name, file_name);
 	strcpy(data_set->file_name_for_dir, strtok(temp_file_name, "."));
-	strcat(data_set->file_name_for_dir, "_temp_file" );
+	strcat(data_set->file_name_for_dir, "_temp_file");
 
 	fptr = fopen(file_name, "r");
 	assert(fptr != NULL);
@@ -61,11 +62,13 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 		char* prefix = strtok(curr_line, ",");
 		if (strcmp(prefix, "F") == 0)
 		{
-			dedup_data_set_add_file(data_set, line);
+			res = dedup_data_set_add_file(data_set, line, fptr);
+			assert(res == SUCCESS);
 		}
 		else if (strcmp(prefix, "P") == 0 || strcmp(prefix, "B") == 0)
 		{
-			dedup_data_set_add_block(data_set, line);
+			res = dedup_data_set_add_block(data_set, line, fptr);
+			assert(res == SUCCESS);
 		}
 		else if (strcmp(prefix, "D") == 0)
 		{
@@ -75,7 +78,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 		line_ptr = fgets(line, LINE_LENGTH, fptr);
 	}
 
-	
+
 	fclose(fptr);
 	fclose(dir_temp_file);
 
@@ -93,6 +96,9 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * line)
 
 		char* prefix = strtok(curr_line, ":");
 		char* val = strtok(NULL, "\n");
+		if (strcmp(prefix, "# Output type") == 0)
+			if (strcmp(val, " block-level") == 0)
+				data_set->is_block_file = true;
 		if (strcmp(prefix, "# Num files") == 0)
 			num_of_files = atoi(val);
 		if (strcmp(prefix, "# Num directories") == 0)
@@ -119,41 +125,43 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 	Dedup_Error_Val res = SUCCESS;
 	char command_buffer[1024];
 
-	while(true)
+	while (true)
 	{
-	    printf("Please write what you wish to do: \n");
-	    printf("option 1: delete_system <system number>\n");
-	    printf("option 2: print_all <file name> \n");
-	    printf("option 3: destroy \n");
-	    scanf(" %[^\n]s", &command_buffer);
+		printf("Please write what you wish to do: \n");
+		printf("option 1: delete_system <system number>\n");
+		printf("option 2: print_all <file name> \n");
+		printf("option 3: destroy \n");
+		scanf(" %[^\n]s", &command_buffer);
 
-	    /*option 3*/
-	    if(strcmp(command_buffer,"destroy")==0)
-	    {
-	    	res = dedup_data_set_destroy(data_set);
-	    	printf("Good bye\n");
-	    	return res;
-	    }
+		/*option 3*/
+		if (strcmp(command_buffer, "destroy") == 0)
+		{
+			res = dedup_data_set_destroy(data_set);
+			printf("Good bye\n");
+			return res;
+		}
 
-	    /*option 1*/
-	    if(strcmp(command_buffer,"delete_system") == 0)
-	    {
-	    	scanf(" %[^\n]s", &command_buffer);
-	    	res = dedup_data_set_delete_system(data_set, atoi(command_buffer));
+		/*option 1*/
+		if (strcmp(command_buffer, "delete_system") == 0)
+		{
+			scanf(" %[^\n]s", &command_buffer);
+			res = dedup_data_set_delete_system(data_set, atoi(command_buffer));
 
-	    	assert(res == SUCCESS);
-	    	printf("System %u was deleted\n",  atoi(command_buffer));
-	    }else if(strcmp(command_buffer,"print_all") == 0)
-	    {
-	    	/*option 2*/
-	    	scanf(" %[^\n]s", &command_buffer);
-	    	res = print_data_set(data_set, command_buffer);
-	    	assert(res == SUCCESS);
-	    	printf("Data was printed to %s\n", command_buffer);
-	    }else
-	    {
-	    	printf("Illegal command\n");
-	    }
+			assert(res == SUCCESS);
+			printf("System %u was deleted\n", atoi(command_buffer));
+		}
+		else if (strcmp(command_buffer, "print_all") == 0)
+		{
+			/*option 2*/
+			scanf(" %[^\n]s", &command_buffer);
+			res = print_data_set(data_set, command_buffer);
+			assert(res == SUCCESS);
+			printf("Data was printed to %s\n", command_buffer);
+		}
+		else
+		{
+			printf("Illegal command\n");
+		}
 
 	}
 

@@ -33,8 +33,8 @@ typedef struct dedup_data_set_t
 
 Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 max_pointers, uint32 containers_max_size, uint32 max_distance);
 Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_of_files, uint32 num_of_blocks, uint32 num_of_dirs);
-Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line);
-Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line);
+Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FILE* fptr);
+Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, FILE* fptr);
 Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set);
 Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn);
 Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, char *file_name);

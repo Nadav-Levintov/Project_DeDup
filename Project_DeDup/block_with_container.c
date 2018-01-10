@@ -63,7 +63,7 @@ Dedup_Error_Val block_with_container_pool_alloc(
 		res = private_allocate_block_with_container_pool_node(
 				pnode, BLOCK_CONTAINER_POOL_INITIAL_SZIZE);
 
-		if(res == ALLOCATION_FAILURE)
+		if(res != SUCCESS)
 		{
 			free(pnode);
 			return res;

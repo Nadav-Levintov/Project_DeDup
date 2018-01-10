@@ -65,7 +65,7 @@ Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 
 	/*Destroy memory pool*/
 	memory_pool_destroy(&data_set->mem_pool);
-	
+
 	/* del temp file */
 	assert(remove(data_set->file_name_for_dir) == 0);
 
@@ -73,7 +73,7 @@ Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 }
 
 
-Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line)
+Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FILE* fptr)
 {
 	if (strcmp(strtok(line, ","), "F") != 0)
 		return INVALID_ARGUMENT_FAILURE;
@@ -94,17 +94,45 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line)
 
 	/* The #blocks is known so we will not use dynamic array here */
 	PBlock_with_container bwc_array;
-	block_with_container_pool_alloc(&data_set->block_with_container_pool, block_amount * sizeof(Block_with_container), &bwc_array);
+	char* line_ptr;
+	if (block_amount > 0) {
 
-	uint32 block_sn, block_size;
-	for (uint32 i = 0; i < block_amount; i++)
-	{
-		block_sn = atoi(strtok(NULL, ","));
-		block_size = atoi(strtok(NULL, ","));
-		data_set->block_arr[block_sn].size = block_size;
-		bwc_array[i].block_sn = block_sn;
+		block_with_container_pool_alloc(&data_set->block_with_container_pool, block_amount * sizeof(Block_with_container), &bwc_array);
+
+		uint32 block_sn, block_size;
+		for (uint32 i = 0; i < block_amount; i++)
+		{
+			line_ptr = strtok(NULL, ",");
+			if (!line_ptr)
+			{
+				/* There are lines of greater length
+				than LINE_LENGTH, then we lost data
+				This solution does not work yet, need to fix
+				*/
+				line_ptr = fgets(line, LINE_LENGTH, fptr);
+				line_ptr = strtok(line, ",");
+			}
+			block_sn = atoi(line_ptr);
+			line_ptr = strtok(NULL, ",");
+			if (!line_ptr)
+			{
+				/* There are lines of greater length
+				than LINE_LENGTH, then we lost data
+				This solution does not work yet, need to fix
+				*/
+				line_ptr = fgets(line, LINE_LENGTH, fptr);
+				line_ptr = strtok(line, ",");
+			}
+			block_size = atoi(line_ptr);
+			data_set->block_arr[block_sn].size = block_size;
+			bwc_array[i].block_sn = block_sn;
+		}
 	}
-
+	else
+	{
+		res = dedup_file_create(&(data_set->file_arr[sn]), REMOVED_SN, 0, id, dir_sn, 0, NULL);
+		assert(res == SUCCESS);
+	}
 	uint32 sys_num = atoi(strtok(id_cpy, "_"));
 
 	res = dedup_file_create(&(data_set->file_arr[sn]), sn, sys_num, id, dir_sn, block_amount, bwc_array);
@@ -128,6 +156,10 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 	for (curr_file_sn = 0; curr_file_sn < data_set->num_of_files; curr_file_sn++)
 	{
 		curr_file = &(data_set->file_arr[curr_file_sn]);
+		if (curr_file->sn == REMOVED_SN)
+		{
+			continue;
+		}
 
 		// check if new system and update sys_array
 		if (curr_file->sys_num != currentSystemNum)
@@ -185,7 +217,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			{
 				/* Block is already in a container, lets update the container with the new file sn and the file with the container sn, also update continer ref count for block */
 				PContainer temp;
-				ret_val= container_dynamic_array_get(container_arr, curr_block->last_container_sn, &temp);
+				ret_val = container_dynamic_array_get(container_arr, curr_block->last_container_sn, &temp);
 				assert(ret_val == SUCCESS);
 				ret_val = container_add_file(temp, &data_set->mem_pool, curr_file_sn);
 				assert(ret_val == SUCCESS);
@@ -222,7 +254,7 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 			curr_block_sn = curr_file->block_with_container_array[block_index].block_sn;
 			curr_continer_sn = curr_file->block_with_container_array[block_index].container_sn;
 			curr_block = &(data_set->block_arr[curr_block_sn]);
-			ret=container_dynamic_array_get(container_array, curr_continer_sn, &curr_container);
+			ret = container_dynamic_array_get(container_array, curr_continer_sn, &curr_container);
 			assert(ret == SUCCESS);
 			ret = container_del_file(curr_container, curr_file_sn);
 			assert(ret == SUCCESS);
@@ -244,7 +276,7 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 	return SUCCESS;
 }
 
-Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line)
+Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, FILE* fptr)
 {
 	char* letter = strtok(line, ",");
 	if (!((strcmp(letter, "B") == 0 && data_set->is_block_file) || (strcmp(letter, "P") == 0 && !data_set->is_block_file)))
@@ -326,7 +358,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 	uint32 systen_sn = 0;
 
 
-	while (fgets(line, sizeof(line), pTempFile)) 
+	while (fgets(line, sizeof(line), pTempFile))
 	{
 		/*	TODO: what if line is larger than LINE_LENGTH? we may lose data here because lines in file may be larger than 1000
 			then the fgets takes the next 1000 chars (until \n) and the first char is not the active system so we will
@@ -357,7 +389,7 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 	Dedup_Error_Val res = SUCCESS;
 	char buffer[LINE_LENGTH] = { 0 };
 	char tmpArray[LINE_LENGTH] = { 0 };
-	uint32 *container_sns = calloc((pDedup_file->block_amount) , sizeof(uint32));
+	uint32 *container_sns = calloc((pDedup_file->block_amount), sizeof(uint32));
 	uint32 containersIndx = 0;
 	strcat(buffer, "F,");
 	sprintf(tmpArray, "%u", pDedup_file->sn);
@@ -431,7 +463,7 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 	sprintf(tmpArray, "%u", pContainer->num_of_files_using);
 	strcat(buffer, tmpArray);
 
-	uint32 index=0, value, printed_files = 0;
+	uint32 index = 0, value, printed_files = 0;
 	while (printed_files < pContainer->num_of_files_using)
 	{
 		assert(DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR != dynamic_array_get(&pContainer->file_array, index, &value));
