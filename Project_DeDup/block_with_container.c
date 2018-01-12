@@ -20,21 +20,14 @@ Dedup_Error_Val block_with_container_pool_init(PBlock_with_container_pool pPool)
 	assert(NULL != pPool);
 
 	/*Create PBlock_with_container_pool_node and allocate the first array*/
-	PBlock_with_container_pool_node pnode = (PBlock_with_container_pool_node) calloc(1,sizeof(Block_with_container_pool_node));
-	if(pnode == NULL)
-	{
-		return ALLOCATION_FAILURE;
-	}
-	res = private_allocate_block_with_container_pool_node(pnode,
+	res = private_allocate_block_with_container_pool_node(&pPool->head,
 			BLOCK_CONTAINER_POOL_INITIAL_SZIZE);
 	if(res == ALLOCATION_FAILURE)
 	{
-		free(pnode);
 		return res;
 	}
 	/*Insert the new node to the pool*/
-	pPool->current = pnode;
-	pPool->head = pnode;
+	pPool->current = &pPool->head;
 	pPool->pool_amount = 1;
 	return SUCCESS;
 }
@@ -85,7 +78,7 @@ Dedup_Error_Val block_with_container_pool_destroy(PBlock_with_container_pool poo
 	{
 		return SUCCESS;
 	}
-	PBlock_with_container_pool_node pNode = pool->head;
+	PBlock_with_container_pool_node pNode = pool->head.next;
 
 	while(NULL != pNode)
 	{
@@ -94,7 +87,6 @@ Dedup_Error_Val block_with_container_pool_destroy(PBlock_with_container_pool poo
 		free(pNode);
 	}
 	pool->pool_amount = 0;
-	pool->head = NULL;
 	pool->current = NULL;
 
 	return SUCCESS;

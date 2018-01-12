@@ -72,9 +72,16 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 		}
 		else if (strcmp(prefix, "D") == 0)
 		{
-			/* TODO: there is an issue here, we get multipale dirs in same line of one of the dirs line is larger than LINE_LENGTH or something*/
 			strcpy(curr_line, line);
 			fputs(curr_line, dir_temp_file);
+			int curr_line_len = strlen(line) - 1;
+			while (line[curr_line_len] != '\n')
+			{
+				line_ptr = fgets(line, LINE_LENGTH, fptr);
+				strcpy(curr_line, line);
+				fputs(curr_line, dir_temp_file);
+				curr_line_len = strlen(line) - 1;
+			}
 		}
 		line_ptr = fgets(line, LINE_LENGTH, fptr);
 	}
@@ -88,6 +95,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 
 Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * line)
 {
+
 	uint32 line_index = 0;
 	uint32 num_of_files = 0, num_of_dirs = 0, num_of_blocks = 0;
 	while (fgets(line, LINE_LENGTH, fd) && line[0] == '#')

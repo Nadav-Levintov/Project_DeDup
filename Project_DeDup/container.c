@@ -65,8 +65,8 @@ Dedup_Error_Val container_dynamic_array_get(PContainer_dynamic_array head, uint3
 		{
 			return DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR;
 		}
-		curr_array = curr_array->next_arr;
 		curr_index -= curr_array->length;
+		curr_array = curr_array->next_arr;
 	}
 
 	*res = &(curr_array->arr[curr_index]);

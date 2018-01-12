@@ -39,5 +39,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set);
 Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn);
 Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, char *file_name);
 Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set);
+Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file);
+Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile, const PContainer pContainer);
 
 #endif // !DEDUP_DATA_SET_H

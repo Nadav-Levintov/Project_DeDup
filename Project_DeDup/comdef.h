@@ -10,12 +10,12 @@
 #include <assert.h>
 
 #define ID_LENGTH 16
-#define LINE_LENGTH (/*10000*/1024*32)
-#define PROGRAM_ARG_SIZE 5
-#define MAX_SYSTEMS 128
-#define MAX_FILE_NAME 128
-#define DYNAMIC_ARRAY_SIZE 128
-#define POOL_INITIAL_SIZE (DYNAMIC_ARRAY_SIZE * 1024 * 1024)
+#define LINE_LENGTH (1024*32)
+#define PROGRAM_ARG_SIZE (5)
+#define MAX_SYSTEMS (128)
+#define MAX_FILE_NAME (128)
+#define DYNAMIC_ARRAY_SIZE (128)
+#define POOL_INITIAL_SIZE (128 * 1024 * 1024)
 #define POOL_EXTEND_SIZE (128)
 #define REMOVED_SN (0xFFFFFFFFU)
 #define INDEX_NOT_FOUND (0xFFFFFFFFU)
@@ -38,5 +38,21 @@ typedef struct folder_t
 	uint32 sn;
 	uint32 sys_num;
 } Folder, *PFolder;
+
+
+static inline uint32 pow(int x, int y)
+{
+	if (y == 0)
+	{
+		return 1;
+	}
+	uint32 res = x;
+	for (int i = 1; i < y; i++)
+	{
+		res *= x;
+	}
+
+	return res;
+}
 
 #endif // !COMDEF_H

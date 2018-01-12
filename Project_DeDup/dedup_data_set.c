@@ -1,8 +1,7 @@
 
 #include "dedup_data_set.h"
-
-Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file);
-Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile, const PContainer pContainer);
+char line1[LINE_LENGTH] = { 0 };
+char line2[LINE_LENGTH] = { 0 };
 
 Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 containers_max_size, uint32 max_distance, uint32 max_pointers)
 {
@@ -75,6 +74,9 @@ Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 
 Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FILE* fptr)
 {
+	bool line_end_with_comma = false;
+	if (line[strlen(line) - 1] == ',')
+		line_end_with_comma = true;
 	if (strcmp(strtok(line, ","), "F") != 0)
 		return INVALID_ARGUMENT_FAILURE;
 
@@ -105,23 +107,56 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 			line_ptr = strtok(NULL, ",");
 			if (!line_ptr)
 			{
-				/* TODO: There are lines of greater length
-				than LINE_LENGTH, then we lost data
-				This solution does not work yet, need to fix
-				*/
+				/* There is a line over flow, we need to fix last block size */
+				//TODO: check if line starts with , or end with , 
+				bool last_line_ended_with_comma = line_end_with_comma;
 				line_ptr = fgets(line, LINE_LENGTH, fptr);
+				line_end_with_comma = false;
+				if (line[strlen(line) - 1] == ',')
+				{
+					line_end_with_comma = true;
+				}
+
+				if (line[0] == ',')
+				{
+					last_line_ended_with_comma = true;
+				}
+
 				line_ptr = strtok(line, ",");
+
+				if (!last_line_ended_with_comma)
+				{
+					data_set->block_arr[block_sn].size *= pow(10, strlen(line_ptr));
+					data_set->block_arr[block_sn].size += atoi(line_ptr);
+					line_ptr = strtok(NULL, ",");
+				}
 			}
 			block_sn = atoi(line_ptr);
 			line_ptr = strtok(NULL, ",");
 			if (!line_ptr)
 			{
-				/* TODO: There are lines of greater length
-				than LINE_LENGTH, then we lost data
-				This solution does not work yet, need to fix
-				*/
+				/* There is a line over flow */
+				bool last_line_ended_with_comma = line_end_with_comma;
 				line_ptr = fgets(line, LINE_LENGTH, fptr);
+				line_end_with_comma = false;
+				
+				if (line[strlen(line) - 1] == ',')
+				{
+					line_end_with_comma = true;
+				}
+
+				if (line[0] == ',')
+				{
+					last_line_ended_with_comma = true;
+				}
+
 				line_ptr = strtok(line, ",");
+				if (!last_line_ended_with_comma) {
+					/* we need to fix block sn */
+					block_sn *= pow(10, strlen(line_ptr));
+					block_sn += atoi(line_ptr);
+					line_ptr = strtok(NULL, ",");
+				}
 			}
 			block_size = atoi(line_ptr);
 			data_set->block_arr[block_sn].size = block_size;
@@ -350,30 +385,32 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 
 	/*write directories*/
 	FILE *pTempFile = NULL;
-	char line[LINE_LENGTH];
-	char line_temp[LINE_LENGTH];
 	pTempFile = fopen(data_set->file_name_for_dir, "r");
 	assert(pTempFile != NULL);
 	char* prefix = NULL;
 	uint32 systen_sn = 0;
 
-
-	while (fgets(line, sizeof(line), pTempFile))
+	char* line_ptr = fgets(line1, sizeof(line1), pTempFile);
+	while (line_ptr)
 	{
-		/*	TODO: what if line is larger than LINE_LENGTH? we may lose data here because lines in file may be larger than 1000
-			then the fgets takes the next 1000 chars (until \n) and the first char is not the active system so we will
-			not print the line!
-		*/
 		/*Check if this directory is from active system*/
-		strcpy(line_temp, line);
-		prefix = strtok(line_temp, ",");
+		strcpy(line2, line1);
+		prefix = strtok(line2, ",");
 		prefix = strtok(NULL, ",");
 		prefix = strtok(NULL, ",");
 		systen_sn = atoi(strtok(prefix, "_"));
 		if (data_set->system_active[systen_sn])
 		{
-			fputs(line, pFile);
+			fputs(line1, pFile);
+			int curr_line_len = strlen(line1) - 1;
+			while (line1[curr_line_len] != '\n')
+			{
+				line_ptr = fgets(line1, LINE_LENGTH, pTempFile);
+				fputs(line1, pFile);
+				curr_line_len = strlen(line1) - 1;
+			}
 		}
+		line_ptr = fgets(line1, LINE_LENGTH, pTempFile);
 	}
 
 	/*TODO: when destroying some lines are added to the file, need to check why this happens and not when we close the temp. */
@@ -387,20 +424,20 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file)
 {
 	Dedup_Error_Val res = SUCCESS;
-	char buffer[LINE_LENGTH] = { 0 };
-	char tmpArray[LINE_LENGTH] = { 0 };
+	memset(line1, 0, LINE_LENGTH);
+	memset(line2, 0, LINE_LENGTH);
 	uint32 *container_sns = calloc((pDedup_file->block_amount), sizeof(uint32));
 	uint32 containersIndx = 0;
-	strcat(buffer, "F,");
-	sprintf(tmpArray, "%u", pDedup_file->sn);
-	strcat(buffer, tmpArray);
+	strcat(line1, "F,");
+	sprintf(line2, "%u", pDedup_file->sn);
+	strcat(line1, line2);
 
-	strcat(buffer, ",");
-	strcat(buffer, pDedup_file->id);
+	strcat(line1, ",");
+	strcat(line1, pDedup_file->id);
 
-	strcat(buffer, ",");
-	sprintf(tmpArray, "%u", pDedup_file->sn);
-	strcat(buffer, tmpArray);
+	strcat(line1, ",");
+	sprintf(line2, "%u", pDedup_file->sn);
+	strcat(line1, line2);
 
 
 	uint32 containerNumInArray;
@@ -429,39 +466,39 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 			container_sns[containersIndx] = containerSn;
 			containersIndx++;
 
-			strcat(buffer, ",");
-			sprintf(tmpArray, "%u", containerSn);
-			strcat(buffer, tmpArray);
+			strcat(line1, ",");
+			sprintf(line2, "%u", containerSn);
+			strcat(line1, line2);
 
-			strcat(buffer, ",");
-			sprintf(tmpArray, "%u", pContainer->size);
-			strcat(buffer, tmpArray);
+			strcat(line1, ",");
+			sprintf(line2, "%u", pContainer->size);
+			strcat(line1, line2);
 		}
 	}
-	strcat(buffer, "\n");
-	fputs(buffer, pFile);
+	strcat(line1, "\n");
+	fputs(line1, pFile);
 	free(container_sns);
 	return res;
 }
 
 Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile, const PContainer pContainer)
 {
-	char buffer[LINE_LENGTH] = { 0 };
-	char tmpArray[LINE_LENGTH] = { 0 };
+	memset(line1, 0, LINE_LENGTH);
+	memset(line2, 0, LINE_LENGTH);
 	assert(pContainer);
 
 	/* Write first line of the container*/
-	strcat(buffer, "C,");
-	sprintf(tmpArray, "%u", pContainer->sn);
-	strcat(buffer, tmpArray);
+	strcat(line1, "C,");
+	sprintf(line2, "%u", pContainer->sn);
+	strcat(line1, line2);
 
-	strcat(buffer, ",");
-	sprintf(tmpArray, "%u", pContainer->size);
-	strcat(buffer, tmpArray);
+	strcat(line1, ",");
+	sprintf(line2, "%u", pContainer->size);
+	strcat(line1, line2);
 
-	strcat(buffer, ",");
-	sprintf(tmpArray, "%u", pContainer->num_of_files_using);
-	strcat(buffer, tmpArray);
+	strcat(line1, ",");
+	sprintf(line2, "%u", pContainer->num_of_files_using);
+	strcat(line1, line2);
 
 	uint32 index = 0, value, printed_files = 0;
 	while (printed_files < pContainer->num_of_files_using)
@@ -469,36 +506,36 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 		assert(DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR != dynamic_array_get(&pContainer->file_array, index, &value));
 		if (value != REMOVED_SN)
 		{
-			if (strlen(buffer) + strlen(tmpArray) + 1 >= LINE_LENGTH)
+			if (strlen(line1) + strlen(line2) + 1 >= LINE_LENGTH)
 			{
-				fputs(buffer, pFile);
-				memset(buffer, 0, LINE_LENGTH);
+				fputs(line1, pFile);
+				memset(line1, 0, LINE_LENGTH);
 			}
-			strcat(buffer, ",");
-			sprintf(tmpArray, "%u", value);
-			strcat(buffer, tmpArray);
+			strcat(line1, ",");
+			sprintf(line2, "%u", value);
+			strcat(line1, line2);
 			printed_files++;
 		}
 		index++;
 	}
-	strcat(buffer, "\n");
-	fputs(buffer, pFile);
+	strcat(line1, "\n");
+	fputs(line1, pFile);
 
 	/* Write second line of the container*/
 
-	memset(buffer, 0, LINE_LENGTH);
+	memset(line1, 0, LINE_LENGTH);
 
-	strcat(buffer, "M,");
-	sprintf(tmpArray, "%u", pContainer->sn);
-	strcat(buffer, tmpArray);
+	strcat(line1, "M,");
+	sprintf(line2, "%u", pContainer->sn);
+	strcat(line1, line2);
 
-	strcat(buffer, ",");
-	sprintf(tmpArray, "%u", pContainer->size);
-	strcat(buffer, tmpArray);
+	strcat(line1, ",");
+	sprintf(line2, "%u", pContainer->size);
+	strcat(line1, line2);
 
-	strcat(buffer, ",");
-	sprintf(tmpArray, "%u", pContainer->num_of_blocks);
-	strcat(buffer, tmpArray);
+	strcat(line1, ",");
+	sprintf(line2, "%u", pContainer->num_of_blocks);
+	strcat(line1, line2);
 	index = 0;
 	uint32 num_of_blocks_printed = 0;
 	while (num_of_blocks_printed < pContainer->num_of_blocks)
@@ -506,19 +543,19 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 		assert(DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR != dynamic_array_get(&pContainer->block_array, index, &value));
 		if (value != REMOVED_SN)
 		{
-			if (strlen(buffer) + strlen(tmpArray) + 1 >= LINE_LENGTH)
+			if (strlen(line1) + strlen(line2) + 1 >= LINE_LENGTH)
 			{
-				fputs(buffer, pFile);
-				memset(buffer, 0, LINE_LENGTH);
+				fputs(line1, pFile);
+				memset(line1, 0, LINE_LENGTH);
 			}
-			strcat(buffer, ",");
-			sprintf(tmpArray, "%u", value);
-			strcat(buffer, tmpArray);
+			strcat(line1, ",");
+			sprintf(line2, "%u", value);
+			strcat(line1, line2);
 			num_of_blocks_printed++;
 		}
 		index++;
 	}
-	strcat(buffer, "\n");
-	fputs(buffer, pFile);
+	strcat(line1, "\n");
+	fputs(line1, pFile);
 	return SUCCESS;
 }

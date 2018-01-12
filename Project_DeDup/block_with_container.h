@@ -22,7 +22,7 @@ typedef struct block_with_container_pool_node_t
 typedef struct block_with_container_pool_t
 {
 	uint32 pool_amount;
-	PBlock_with_container_pool_node head;
+	Block_with_container_pool_node head;
 	PBlock_with_container_pool_node current;
 } Block_with_container_pool, *PBlock_with_container_pool;
 
