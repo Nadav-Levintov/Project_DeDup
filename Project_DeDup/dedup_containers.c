@@ -1,6 +1,6 @@
 #include "dedup_containers.h"
-char line1[LINE_LENGTH];
-char line2[LINE_LENGTH];
+char containers_line1[LINE_LENGTH];
+char containers_line2[LINE_LENGTH];
 Dedup_data_set data_set;
 
 int main(int argc, char *argv[]) {
@@ -48,42 +48,42 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	assert(fptr != NULL);
 
 	/*Read header of file*/
-	memset(line1, 0, LINE_LENGTH);
-	memset(line2, 0, LINE_LENGTH);
-	res = parse_header(fptr, data_set, line1);
+	memset(containers_line1, 0, LINE_LENGTH);
+	memset(containers_line2, 0, LINE_LENGTH);
+	res = parse_header(fptr, data_set, containers_line1);
 
 	assert(res == SUCCESS);
-	char* line_ptr = line1;
+	char* line_ptr = containers_line1;
 
 	/* loop over file and read first letter and activate the relevant function */
 	while (line_ptr)
 	{
-		strcpy(line2, line1);
-		char* prefix = strtok(line2, ",");
+		strcpy(containers_line2, containers_line1);
+		char* prefix = strtok(containers_line2, ",");
 		if (strcmp(prefix, "F") == 0)
 		{
-			res = dedup_data_set_add_file(data_set, line1, fptr);
+			res = dedup_data_set_add_file(data_set, containers_line1, fptr);
 			assert(res == SUCCESS);
 		}
 		else if (strcmp(prefix, "P") == 0 || strcmp(prefix, "B") == 0)
 		{
-			res = dedup_data_set_add_block(data_set, line1, fptr);
+			res = dedup_data_set_add_block(data_set, containers_line1, fptr);
 			assert(res == SUCCESS);
 		}
 		else if (strcmp(prefix, "D") == 0)
 		{
-			strcpy(line2, line1);
-			fputs(line2, dir_temp_file);
-			int curr_line_len = strlen(line1) - 1;
-			while (line1[curr_line_len] != '\n')
+			strcpy(containers_line2, containers_line1);
+			fputs(containers_line2, dir_temp_file);
+			int curr_line_len = strlen(containers_line1) - 1;
+			while (containers_line1[curr_line_len] != '\n')
 			{
-				line_ptr = fgets(line1, LINE_LENGTH, fptr);
-				strcpy(line2, line1);
-				fputs(line2, dir_temp_file);
-				curr_line_len = strlen(line1) - 1;
+				line_ptr = fgets(containers_line1, LINE_LENGTH, fptr);
+				strcpy(containers_line2, containers_line1);
+				fputs(containers_line2, dir_temp_file);
+				curr_line_len = strlen(containers_line1) - 1;
 			}
 		}
-		line_ptr = fgets(line1, LINE_LENGTH, fptr);
+		line_ptr = fgets(containers_line1, LINE_LENGTH, fptr);
 	}
 
 
@@ -100,9 +100,9 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * header_
 	uint32 num_of_files = 0, num_of_dirs = 0, num_of_blocks = 0;
 	while (fgets(header_line, LINE_LENGTH, fd) && header_line[0] == '#')
 	{
-		strcpy(line2, header_line);
+		strcpy(containers_line2, header_line);
 
-		char* prefix = strtok(line2, ":");
+		char* prefix = strtok(containers_line2, ":");
 		char* val = strtok(NULL, "\n");
 		if (strcmp(prefix, "# Output type") == 0)
 			if (strcmp(val, " block-level") == 0)

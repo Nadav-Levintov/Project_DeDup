@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#define ID_LENGTH 16
+#define ID_LENGTH (16)
 #define LINE_LENGTH (1024*32)
 #define PROGRAM_ARG_SIZE (5)
 #define MAX_SYSTEMS (128)
