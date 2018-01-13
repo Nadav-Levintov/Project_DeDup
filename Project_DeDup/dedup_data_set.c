@@ -108,7 +108,6 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 			if (!line_ptr)
 			{
 				/* There is a line over flow, we need to fix last block size */
-				//TODO: check if line starts with , or end with , 
 				bool last_line_ended_with_comma = line_end_with_comma;
 				line_ptr = fgets(line, LINE_LENGTH, fptr);
 				line_end_with_comma = false;
@@ -227,7 +226,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 					{
 						printf("Block with SN= %u size is larger than the Max container size!\n", curr_block->sn);
 						printf("Block with SN= %u size is: %u and the max allowed size is:%u\n", curr_block->sn, curr_block->size, data_set->max_container_size);
-						//TODO: create a clean exit function - mainly del the temp DIR file...
+						dedup_data_set_destroy(data_set);
 						assert(0);
 					}
 					ret_val = container_dynamic_array_add_and_get(container_arr, &data_set->mem_pool, &curr_container);
