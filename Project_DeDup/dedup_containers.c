@@ -1,5 +1,6 @@
 #include "dedup_containers.h"
-
+char line1[LINE_LENGTH];
+char line2[LINE_LENGTH];
 Dedup_data_set data_set;
 
 int main(int argc, char *argv[]) {
@@ -47,43 +48,42 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	assert(fptr != NULL);
 
 	/*Read header of file*/
-	char line[LINE_LENGTH];
-	res = parse_header(fptr, data_set, line);
+	memset(line1, 0, LINE_LENGTH);
+	memset(line2, 0, LINE_LENGTH);
+	res = parse_header(fptr, data_set, line1);
 
 	assert(res == SUCCESS);
-
-	char curr_line[LINE_LENGTH];
-	char* line_ptr = line;
+	char* line_ptr = line1;
 
 	/* loop over file and read first letter and activate the relevant function */
 	while (line_ptr)
 	{
-		strcpy(curr_line, line);
-		char* prefix = strtok(curr_line, ",");
+		strcpy(line2, line1);
+		char* prefix = strtok(line2, ",");
 		if (strcmp(prefix, "F") == 0)
 		{
-			res = dedup_data_set_add_file(data_set, line, fptr);
+			res = dedup_data_set_add_file(data_set, line1, fptr);
 			assert(res == SUCCESS);
 		}
 		else if (strcmp(prefix, "P") == 0 || strcmp(prefix, "B") == 0)
 		{
-			res = dedup_data_set_add_block(data_set, line, fptr);
+			res = dedup_data_set_add_block(data_set, line1, fptr);
 			assert(res == SUCCESS);
 		}
 		else if (strcmp(prefix, "D") == 0)
 		{
-			strcpy(curr_line, line);
-			fputs(curr_line, dir_temp_file);
-			int curr_line_len = strlen(line) - 1;
-			while (line[curr_line_len] != '\n')
+			strcpy(line2, line1);
+			fputs(line2, dir_temp_file);
+			int curr_line_len = strlen(line1) - 1;
+			while (line1[curr_line_len] != '\n')
 			{
-				line_ptr = fgets(line, LINE_LENGTH, fptr);
-				strcpy(curr_line, line);
-				fputs(curr_line, dir_temp_file);
-				curr_line_len = strlen(line) - 1;
+				line_ptr = fgets(line1, LINE_LENGTH, fptr);
+				strcpy(line2, line1);
+				fputs(line2, dir_temp_file);
+				curr_line_len = strlen(line1) - 1;
 			}
 		}
-		line_ptr = fgets(line, LINE_LENGTH, fptr);
+		line_ptr = fgets(line1, LINE_LENGTH, fptr);
 	}
 
 
@@ -93,17 +93,16 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	return res;
 }
 
-Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * line)
+Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * header_line)
 {
 
 	uint32 line_index = 0;
 	uint32 num_of_files = 0, num_of_dirs = 0, num_of_blocks = 0;
-	while (fgets(line, LINE_LENGTH, fd) && line[0] == '#')
+	while (fgets(header_line, LINE_LENGTH, fd) && header_line[0] == '#')
 	{
-		char curr_line[LINE_LENGTH];
-		strcpy(curr_line, line);
+		strcpy(line2, header_line);
 
-		char* prefix = strtok(curr_line, ":");
+		char* prefix = strtok(line2, ":");
 		char* val = strtok(NULL, "\n");
 		if (strcmp(prefix, "# Output type") == 0)
 			if (strcmp(val, " block-level") == 0)
