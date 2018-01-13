@@ -139,7 +139,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 				bool last_line_ended_with_comma = line_end_with_comma;
 				line_ptr = fgets(line, LINE_LENGTH, fptr);
 				line_end_with_comma = false;
-				
+
 				if (line[strlen(line) - 1] == ',')
 				{
 					line_end_with_comma = true;
@@ -294,7 +294,7 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 			ret = container_del_file(curr_container, curr_file_sn);
 			assert(ret == SUCCESS);
 			ret = block_container_decrece_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
-			assert(ret == SUCCESS);
+			assert(ret == SUCCESS && curr_ref_count != INDEX_NOT_FOUND);
 			if (curr_ref_count == 0)
 			{
 				ret = container_del_block(curr_container, curr_block_sn, curr_block->size);

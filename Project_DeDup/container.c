@@ -3,23 +3,31 @@
 Dedup_Error_Val container_add_file(PContainer container, PMemory_pool pool, uint32 file_sn)
 {
 	Dedup_Error_Val ret_val = SUCCESS;
-
-	ret_val = dynamic_array_add(&(container->file_array), pool, file_sn);
-	assert(ret_val == SUCCESS);
-	container->num_of_files_using++;
-
+	PDynamic_array arr = &(container->file_array);
+	uint32 index;
+	bool containes = dynamic_array_contains(arr, file_sn, &index);
+	if (!containes)
+	{
+		ret_val = dynamic_array_add(arr, pool, file_sn);
+		assert(ret_val == SUCCESS);
+		container->num_of_files_using++;
+	}
 	return ret_val;
 }
 
 Dedup_Error_Val container_add_block(PContainer container, PMemory_pool pool, uint32 block_sn, uint32 block_size)
 {
 	Dedup_Error_Val ret_val = SUCCESS;
-
-	ret_val = dynamic_array_add(&(container->block_array), pool, block_sn);
-	assert(ret_val == SUCCESS);
-	container->num_of_blocks++;
-	container->size += block_size;
-
+	PDynamic_array arr = &(container->block_array);
+	uint32 index;
+	bool containes = dynamic_array_contains(arr, block_sn, &index);
+	if (!containes)
+	{
+		ret_val = dynamic_array_add(arr, pool, block_sn);
+		assert(ret_val == SUCCESS);
+		container->num_of_blocks++;
+		container->size += block_size;
+	}
 	return ret_val;
 }
 

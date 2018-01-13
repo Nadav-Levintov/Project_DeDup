@@ -12,14 +12,19 @@ Dedup_Error_Val block_init(PBlock block, uint32 sn, char * id, uint32 shared_by_
 Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 container_sn)
 {
 	Dedup_Error_Val ret_val = SUCCESS;
+	PDynamic_array arr = &(block->container_with_ref_count_array);
+	uint32 index;
+	bool containes = container_with_ref_array_dynamic_array_contains(arr, container_sn, &index);
+	if (!containes)
+	{
+		ret_val = dynamic_array_add(arr, pool, container_sn);
+		assert(ret_val == SUCCESS);
+		ret_val = dynamic_array_add(arr, pool, 1);
+		assert(ret_val == SUCCESS);
 
-	ret_val = dynamic_array_add(&(block->container_with_ref_count_array), pool, container_sn);
-	assert(ret_val == SUCCESS);
-	ret_val = dynamic_array_add(&(block->container_with_ref_count_array), pool, 1);
-	assert(ret_val == SUCCESS);
-
-	block->last_container_sn = container_sn;
-	block->last_container_ref_count = 1;
+		block->last_container_sn = container_sn;
+		block->last_container_ref_count = 1;
+	}
 
 	return ret_val;
 }
@@ -42,7 +47,7 @@ bool container_with_ref_array_dynamic_array_contains(PDynamic_array head, uint32
 
 	while (curr_array)
 	{
-		for (curr_index = 0; curr_index < DYNAMIC_ARRAY_SIZE; curr_index+=2) //+2 because odd indexs are for refs
+		for (curr_index = 0; curr_index < curr_array->length; curr_index+=2) //+2 because odd indexs are for refs
 		{
 			if (curr_array->arr[curr_index] == val)
 			{
