@@ -7,11 +7,11 @@ CC = gcc
 INCLUDE = *.h
 LIBS = -lm
 
-hello:${OBJ}
+dedup: ${OBJ}
    ${CC} ${CFLAGS} ${INCLUDES} -o $@ ${OBJS} ${LIBS}
 
 clean:
    -rm -f *.o 
+   -rm -f error.txt
 
-.cpp.o:
-   ${CC} ${CFLAGS} ${INCLUDES} -c $<
+   
