@@ -41,14 +41,15 @@ typedef struct folder_t
 } Folder, *PFolder;
 
 
-static inline uint32 pow(int x, int y)
+static inline uint32 pow_aux(int x, int y)
 {
 	if (y == 0)
 	{
 		return 1;
 	}
 	uint32 res = x;
-	for (int i = 1; i < y; i++)
+	int i;
+	for (i = 1; i < y; i++)
 	{
 		res *= x;
 	}

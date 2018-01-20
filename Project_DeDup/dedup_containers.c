@@ -139,7 +139,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		printf("option 2: print_all <file name> \n");
 		printf("option 3: destroy \n");
 		fflush(stdout);
-		scanf(" %[^\n]s", &command_buffer);
+		scanf(" %[^\n]s", (char*)&command_buffer);
 
 		/*option 3*/
 		if (strcmp(command_buffer, "destroy") == 0)
@@ -152,7 +152,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		/*option 1*/
 		if (strcmp(command_buffer, "delete_system") == 0)
 		{
-			scanf(" %[^\n]s", &command_buffer);
+			scanf(" %[^\n]s", (char*)&command_buffer);
 			res = dedup_data_set_delete_system(data_set, atoi(command_buffer));
 
 			assert(res == SUCCESS);
@@ -161,7 +161,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		else if (strcmp(command_buffer, "print_all") == 0)
 		{
 			/*option 2*/
-			scanf(" %[^\n]s", &command_buffer);
+			scanf(" %[^\n]s", (char*)&command_buffer);
 			res = print_data_set(data_set, command_buffer);
 			assert(res == SUCCESS);
 			printf("Data was printed to %s\n", command_buffer);

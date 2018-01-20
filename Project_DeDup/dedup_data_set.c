@@ -130,7 +130,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 
 				if (!last_line_ended_with_comma)
 				{
-					data_set->block_arr[block_sn].size *= pow(10, strlen(line_ptr));
+					data_set->block_arr[block_sn].size *= pow_aux(10, strlen(line_ptr));
 					data_set->block_arr[block_sn].size += atoi(line_ptr);
 					line_ptr = strtok(NULL, ",");
 				}
@@ -157,7 +157,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 				line_ptr = strtok(line, ",");
 				if (!last_line_ended_with_comma) {
 					/* we need to fix block sn */
-					block_sn *= pow(10, strlen(line_ptr));
+					block_sn *= pow_aux(10, strlen(line_ptr));
 					block_sn += atoi(line_ptr);
 					line_ptr = strtok(NULL, ",");
 				}

@@ -12,10 +12,11 @@ Dedup_Error_Val memory_pool_alloc(PMemory_pool pool, uint32 size, uint32 ** res)
 	uint32 size_of_uint32_to_alloc = (size % sizeof(uint32)) ? size_in_uint32_uints  + 1 : size_in_uint32_uints;
 	PMemory_pool pool_to_alloc_from = pool;
 	uint32 pool_to_alloc_from_index = pool->next_free_pool_index;
+	uint32 i;
 
 	assert(size_of_uint32_to_alloc < POOL_INITIAL_SIZE);
 
-	for (uint32 i = 0; i < pool_to_alloc_from_index; i++)
+	for (i = 0; i < pool_to_alloc_from_index; i++)
 	{
 		pool_to_alloc_from = pool_to_alloc_from->next_pool;
 	}
