@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	// init the data structure
-
 	dedup_data_set_init_args(&data_set, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
 
 	//Read file
@@ -70,7 +69,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 			res = dedup_data_set_add_block(data_set, containers_line1, fptr);
 			assert(res == SUCCESS);
 		}
-		else if (strcmp(prefix, "D") == 0)
+		else if ((strcmp(prefix, "D") == 0) || (strcmp(prefix, "R") == 0))
 		{
 			strcpy(containers_line2, containers_line1);
 			fputs(containers_line2, dir_temp_file);
@@ -139,6 +138,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		printf("option 1: delete_system <system number>\n");
 		printf("option 2: print_all <file name> \n");
 		printf("option 3: destroy \n");
+		fflush(stdout);
 		scanf(" %[^\n]s", &command_buffer);
 
 		/*option 3*/
