@@ -1,10 +1,20 @@
-
+#include <time.h>
 #include "dedup_data_set.h"
+
 char data_set_line1[LINE_LENGTH] = { 0 };
 char data_set_line2[LINE_LENGTH] = { 0 };
 char data_set_line3[LINE_LENGTH] = { 0 };
-Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 containers_max_size, uint32 max_distance, uint32 max_pointers)
+
+Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_name, uint32 containers_max_size, uint32 max_distance, uint32 max_pointers)
 {
+	char error_file_name[MAX_FILE_NAME];
+	char time_string[MAX_FILE_NAME];
+	FILE* error_file = NULL;
+	time_t rawtime;
+	struct tm * timeinfo;
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
 	memset(data_set, 0, sizeof(Dedup_data_set));
 
 	data_set->max_distance_between_containers_for_file = max_distance;
@@ -12,9 +22,18 @@ Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, uint32 contai
 	data_set->max_container_size = containers_max_size;
 	data_set->num_of_active_systems = 0;
 	data_set->num_of_systems = 0;
-	data_set->errorFile = fopen("error.txt", "w");
+	
+	strcpy(error_file_name, file_name);
+	strcpy(data_set->error_file_name, strtok(error_file_name, "."));
+	sprintf(time_string, "_%d_%02d_%d_%02d_%02d_%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, 
+		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	strcat(data_set->error_file_name, time_string);
+	strcat(data_set->error_file_name, "_error.txt");
+	error_file = fopen(data_set->error_file_name, "w");
 
-	assert(data_set->errorFile != NULL);
+	assert(error_file != NULL);
+	fclose(error_file);
+
 	return SUCCESS;
 }
 
@@ -173,6 +192,10 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 		assert(res == SUCCESS);
 	}
 	uint32 sys_num = atoi(strtok(id_cpy, "_"));
+	if (block_amount > data_set->max_num_of_containers)
+	{
+		data_set->max_num_of_containers = block_amount;
+	}
 
 	res = dedup_file_create(&(data_set->file_arr[sn]), sn, sys_num, id, dir_sn, block_amount, bwc_array);
 	assert(res == SUCCESS);
@@ -233,6 +256,10 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 					/* Current container cannot hold the block, lets open a new container */
 					if (data_set->max_container_size < curr_block->size)
 					{
+						FILE* error_file = NULL;
+						error_file = fopen(data_set->error_file_name, "a");
+						assert(error_file != NULL);
+						
 						memset(data_set_line1, 0, LINE_LENGTH);
 						memset(data_set_line2, 0, LINE_LENGTH);
 						strcat(data_set_line1, "Block with SN: ");
@@ -248,9 +275,9 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 						strcat(data_set_line1, data_set_line2);
 
 						strcat(data_set_line1, "\n");
-						fputs(data_set_line1, data_set->errorFile);
+						fputs(data_set_line1, error_file);
 						blockSize = data_set->max_container_size;
-
+						fclose(error_file);
 					}
 					ret_val = container_dynamic_array_add_and_get(container_arr, &data_set->mem_pool, &curr_container);
 					assert(ret_val == SUCCESS);
@@ -369,7 +396,8 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 
 	Dedup_Error_Val res = SUCCESS;
 	FILE *pFile;
-
+	uint32 *container_sns = calloc(data_set->max_num_of_containers, sizeof(uint32));
+	assert(container_sns != NULL);
 	pFile = fopen(file_name, "w");
 	assert(pFile != NULL);
 
@@ -395,7 +423,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 		while (data_set->file_arr[file_sn].sys_num == system_num)
 		{
 			currentFile = &data_set->file_arr[file_sn];
-			res = dedup_data_print_dfile(data_set, pFile, currentFile);
+			res = dedup_data_print_dfile(data_set, pFile, currentFile, container_sns);
 			assert(res == SUCCESS);
 			file_sn++;
 		}
@@ -432,7 +460,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 		if (data_set->system_active[systen_sn])
 		{
 			fputs(data_set_line1, pFile);
-			int curr_line_len = strlen(data_set_line1) - 1;
+			size_t curr_line_len = strlen(data_set_line1) - 1;
 			while (data_set_line1[curr_line_len] != '\n')
 			{
 				line_ptr = fgets(data_set_line1, LINE_LENGTH, pTempFile);
@@ -443,11 +471,9 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 		line_ptr = fgets(data_set_line1, LINE_LENGTH, pTempFile);
 	}
 
-	/*TODO: when destroying some lines are added to the file, need to check why this happens and not when we close the temp. */
-
 	/*close file*/
 	fclose(pTempFile);
-
+	free(container_sns);
 	return SUCCESS;
 }
 
@@ -548,15 +574,12 @@ Dedup_Error_Val dedup_data_print_header(PDedup_data_set data_set, FILE *pFile)
 	return res;
 }
 
-Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file)
+Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file, uint32 * container_sns)
 {
 	Dedup_Error_Val res = SUCCESS;
 	memset(data_set_line1, 0, LINE_LENGTH);
 	memset(data_set_line2, 0, LINE_LENGTH);
 	memset(data_set_line3, 0, LINE_LENGTH);
-
-	uint32 *container_sns = calloc((pDedup_file->block_amount), sizeof(uint32));
-	/*TODO: this is bad -> you alloc and free for every file you print ... millions*/
 
 	uint32 containersIndx = 0;
 	strcat(data_set_line1, "F,");
@@ -579,13 +602,13 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 
 	for (containerNumInArray = 0; containerNumInArray < pDedup_file->block_amount; containerNumInArray++)
 	{
-
 		containerSn = pDedup_file->block_with_container_array[containerNumInArray].container_sn;
 		res = container_dynamic_array_get(&data_set->container_arr, containerSn, &pContainer);
 		assert(res == SUCCESS);
 
 		bool new_contaier = true;
 		uint32 i;
+
 		for (i = 0; i < containersIndx; i++)
 		{
 			if (containerSn == container_sns[i])
@@ -616,7 +639,6 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 
 	strcat(data_set_line1, "\n");
 	fputs(data_set_line1, pFile);
-	free(container_sns);
 	return res;
 }
 

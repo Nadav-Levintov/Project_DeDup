@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// init the data structure
-	dedup_data_set_init_args(&data_set, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+	dedup_data_set_init_args(&data_set, argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
 
 	//Read file
 	res = parse_file(argv[1], &data_set);

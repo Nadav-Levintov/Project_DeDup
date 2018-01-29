@@ -67,7 +67,7 @@ Dedup_Error_Val block_with_container_pool_alloc(
 
 		assert(pPool->current->pool_size >= size);
 	}
-	*arr = (PBlock_with_container*)&(pPool->current->array[pPool->current->next_empty_index]);
+	*arr = (PBlock_with_container)&(pPool->current->array[pPool->current->next_empty_index]);
 	pPool->current->next_empty_index += size;
 	return SUCCESS;
 }
