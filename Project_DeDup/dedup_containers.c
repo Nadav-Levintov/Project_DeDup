@@ -131,18 +131,19 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 {
 	Dedup_Error_Val res = SUCCESS;
 	char command_buffer[1024];
+	char* cmd;
 
 	while (true)
 	{
 		printf("Please write what you wish to do: \n");
-		printf("option 1: delete_system <system number>\n");
-		printf("option 2: print_all <file name> \n");
-		printf("option 3: destroy \n");
+		printf("delete <system numbers seperated by spaces>\n");
+		printf("print <file name> \n");
+		printf("exit \n");
 		fflush(stdout);
 		scanf(" %[^\n]s", (char*)&command_buffer);
-
+		cmd = strtok(command_buffer, " ");
 		/*option 3*/
-		if (strcmp(command_buffer, "destroy") == 0)
+		if (strcmp(command_buffer, "exit") == 0)
 		{
 			res = dedup_data_set_destroy(data_set);
 			printf("Good bye\n");
@@ -150,21 +151,35 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		}
 
 		/*option 1*/
-		if (strcmp(command_buffer, "delete_system") == 0)
+		if (strcmp(command_buffer, "delete") == 0)
 		{
-			scanf(" %[^\n]s", (char*)&command_buffer);
-			res = dedup_data_set_delete_system(data_set, atoi(command_buffer));
-
-			assert(res == SUCCESS);
-			printf("System %u was deleted\n", atoi(command_buffer));
+			cmd = strtok(NULL, " ");
+			if(cmd == NULL);
+			{
+				printf("No systems were entered for deletion!\n");
+			}
+			while (cmd != NULL)
+			{
+				res = dedup_data_set_delete_system(data_set, atoi(cmd));
+				assert(res == SUCCESS);
+				printf("System %u was deleted\n", atoi(cmd));
+				cmd = strtok(NULL, " ");
+			}
 		}
-		else if (strcmp(command_buffer, "print_all") == 0)
+		else if (strcmp(command_buffer, "print") == 0)
 		{
 			/*option 2*/
-			scanf(" %[^\n]s", (char*)&command_buffer);
-			res = print_data_set(data_set, command_buffer);
-			assert(res == SUCCESS);
-			printf("Data was printed to %s\n", command_buffer);
+			cmd = strtok(NULL, " ");
+			if (cmd == NULL)
+			{
+				printf("No file name was entered!\n");
+			}
+			else 
+			{
+				res = print_data_set(data_set, cmd);
+				assert(res == SUCCESS);
+				printf("Data was printed to %s\n", cmd);
+			}
 		}
 		else
 		{

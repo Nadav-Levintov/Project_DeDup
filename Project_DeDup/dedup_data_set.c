@@ -363,6 +363,7 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 	}
 
 	data_set->system_active[system_sn] = false;
+	data_set->system_deletion_order[data_set->num_of_systems - data_set->num_of_active_systems] = system_sn;
 	data_set->num_of_active_systems--;
 
 	return SUCCESS;
@@ -481,7 +482,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 Dedup_Error_Val dedup_data_print_header(PDedup_data_set data_set, FILE *pFile)
 {
 	Dedup_Error_Val res = SUCCESS;
-	uint32 systemIndex = 1;
+	uint32 i = 0;
 
 	memset(data_set_line1, 0, LINE_LENGTH);
 	memset(data_set_line2, 0, LINE_LENGTH);
@@ -558,15 +559,12 @@ Dedup_Error_Val dedup_data_print_header(PDedup_data_set data_set, FILE *pFile)
 	memset(data_set_line1, 0, LINE_LENGTH);
 	memset(data_set_line2, 0, LINE_LENGTH);
 
-	strcat(data_set_line1, "# Deleted Systems: ");
-	for(systemIndex = 1; systemIndex <= data_set->num_of_systems; systemIndex++)
+	strcat(data_set_line1, "# Deletion order: ");
+	for(i = 0; i < data_set->num_of_systems - data_set->num_of_active_systems; i++)
 	{
-		if(!data_set->system_active[systemIndex])
-		{
-			sprintf(data_set_line2, "%u ", systemIndex);
-		}
+			sprintf(data_set_line2, "%u ", data_set->system_deletion_order[i]);
+			strcat(data_set_line1, data_set_line2);	
 	}
-	strcat(data_set_line1, data_set_line2);
 	strcat(data_set_line1, "\n");
 	fputs(data_set_line1, pFile);
 	memset(data_set_line1, 0, LINE_LENGTH);

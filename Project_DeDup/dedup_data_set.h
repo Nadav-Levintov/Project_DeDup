@@ -24,6 +24,7 @@ typedef struct dedup_data_set_t
 	uint32 max_pointers_to_block;
 	uint32 max_container_size; // in bytes
 	uint32 system_file_index[MAX_SYSTEMS];
+	uint32 system_deletion_order[MAX_SYSTEMS];
 	bool system_active[MAX_SYSTEMS];
 	char file_name_for_dir[MAX_FILE_NAME];
 	uint32 num_of_systems;
