@@ -143,7 +143,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		scanf(" %[^\n]s", (char*)&command_buffer);
 		cmd = strtok(command_buffer, " ");
 		/*option 3*/
-		if (strcmp(command_buffer, "exit") == 0)
+		if (strcmp(cmd, "exit") == 0)
 		{
 			res = dedup_data_set_destroy(data_set);
 			printf("Good bye\n");
@@ -151,10 +151,10 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		}
 
 		/*option 1*/
-		if (strcmp(command_buffer, "delete") == 0)
+		if (strcmp(cmd, "delete") == 0)
 		{
 			cmd = strtok(NULL, " ");
-			if(cmd == NULL);
+			if (cmd == NULL)
 			{
 				printf("No systems were entered for deletion!\n");
 			}
@@ -166,7 +166,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 				cmd = strtok(NULL, " ");
 			}
 		}
-		else if (strcmp(command_buffer, "print") == 0)
+		else if (strcmp(cmd, "print") == 0)
 		{
 			/*option 2*/
 			cmd = strtok(NULL, " ");
@@ -174,7 +174,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 			{
 				printf("No file name was entered!\n");
 			}
-			else 
+			else
 			{
 				res = print_data_set(data_set, cmd);
 				assert(res == SUCCESS);

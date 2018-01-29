@@ -319,8 +319,9 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn)
 {
 	Dedup_Error_Val ret = SUCCESS;
-	if (!data_set->system_active[system_sn])
+	if (system_sn > data_set->num_of_systems || !data_set->system_active[system_sn])
 	{
+		printf("System %d already deleted or is not in the input file.\n", system_sn);
 		return SUCCESS;
 	}
 
