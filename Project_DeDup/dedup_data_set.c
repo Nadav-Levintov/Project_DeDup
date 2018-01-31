@@ -207,6 +207,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 	Dedup_Error_Val ret_val = SUCCESS;
 	uint32 curr_file_sn, curr_block_sn;
 	uint32 *containers_filled = &(data_set->num_of_containers_filled);
+	uint64 checkMaxSize =0;
 	PDedup_File curr_file;
 	PBlock curr_block;
 	PContainer curr_container;
@@ -251,7 +252,8 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			if (not_in_container || max_distance_passed || max_pointers_passed)
 			{
 				/* We need to insert current block to the current container */
-				if (curr_container->size + curr_block->size > data_set->max_container_size)
+				checkMaxSize = (uint64)curr_container->size + (uint64)curr_block->size;
+				if (checkMaxSize > data_set->max_container_size)
 				{
 					/* Current container cannot hold the block, lets open a new container */
 					if (data_set->max_container_size < curr_block->size)
@@ -282,6 +284,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 					ret_val = container_dynamic_array_add_and_get(container_arr, &data_set->mem_pool, &curr_container);
 					assert(ret_val == SUCCESS);
 					(*containers_filled)++;
+
 				}
 
 				ret_val = container_add_file(curr_container, &data_set->mem_pool, curr_file_sn);
@@ -449,8 +452,11 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 	assert(pTempFile != NULL);
 	char* prefix = NULL;
 	uint32 systen_sn = 0;
+	memset(data_set_line1, 0, LINE_LENGTH);
+	memset(data_set_line2, 0, LINE_LENGTH);
+	memset(data_set_line3, 0, LINE_LENGTH);
 
-	char* line_ptr = fgets(data_set_line1, sizeof(data_set_line1), pTempFile);
+	char* line_ptr = fgets(data_set_line1, LINE_LENGTH, pTempFile);
 	while (line_ptr)
 	{
 		/*Check if this directory is from active system*/
@@ -462,13 +468,16 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 		if (data_set->system_active[systen_sn])
 		{
 			fputs(data_set_line1, pFile);
-			size_t curr_line_len = strlen(data_set_line1) - 1;
-			while (data_set_line1[curr_line_len] != '\n')
+		}
+		size_t curr_line_len = strlen(data_set_line1) - 1;
+		while (data_set_line1[curr_line_len] != '\n')
+		{
+			line_ptr = fgets(data_set_line1, LINE_LENGTH, pTempFile);
+			if (data_set->system_active[systen_sn])
 			{
-				line_ptr = fgets(data_set_line1, LINE_LENGTH, pTempFile);
 				fputs(data_set_line1, pFile);
-				curr_line_len = strlen(data_set_line1) - 1;
 			}
+			curr_line_len = strlen(data_set_line1) - 1;
 		}
 		line_ptr = fgets(data_set_line1, LINE_LENGTH, pTempFile);
 	}
