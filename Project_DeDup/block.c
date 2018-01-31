@@ -26,7 +26,6 @@ Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 cont
 		block->last_container_sn = container_sn;
 		block->last_container_ref_count = 1;
 	}
-
 	return ret_val;
 }
 

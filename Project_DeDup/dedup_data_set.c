@@ -224,7 +224,6 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 		{
 			continue;
 		}
-
 		// check if new system and update sys_array
 		if (curr_file->sys_num != currentSystemNum)
 		{
@@ -253,9 +252,10 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			{
 				/* We need to insert current block to the current container */
 				checkMaxSize = (uint64)curr_container->size + (uint64)curr_block->size;
-				if (checkMaxSize > data_set->max_container_size)
+				if (checkMaxSize > data_set->max_container_size || curr_block->last_container_sn == curr_container->sn)
 				{
-					/* Current container cannot hold the block, lets open a new container */
+					/* Current container cannot hold the block, lets open a new container
+					 * size is to big or to many pointers to block and current container already contains the block */
 					if (data_set->max_container_size < curr_block->size)
 					{
 						FILE* error_file = NULL;
@@ -347,7 +347,8 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 			ret = container_del_file(curr_container, curr_file_sn);
 			assert(ret == SUCCESS);
 			ret = block_container_decrece_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
-			assert(ret == SUCCESS && curr_ref_count != INDEX_NOT_FOUND);
+			assert(ret == SUCCESS);
+			assert(curr_ref_count != INDEX_NOT_FOUND);
 			if (curr_ref_count == 0)
 			{
 				if(curr_block->size > data_set->max_container_size)
