@@ -14,7 +14,10 @@ Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 cont
 {
 	Dedup_Error_Val ret_val = SUCCESS;
 	PDynamic_array arr = &(block->container_with_ref_count_array);
-	uint32 index;
+	uint32 index = 0;
+	uint32 ref_count = 0;
+	PDynamic_array container_with_ref_arr = &(block->container_with_ref_count_array);
+
 	bool containes = container_with_ref_array_dynamic_array_contains(arr, container_sn, &index);
 	if (!containes)
 	{
@@ -25,6 +28,15 @@ Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 cont
 
 		block->last_container_sn = container_sn;
 		block->last_container_ref_count = 1;
+	}else
+	{
+		ret_val = dynamic_array_get(container_with_ref_arr, index + 1, &ref_count);
+		assert(ret_val == SUCCESS);
+		ref_count++;
+		ret_val = dynamic_array_update(container_with_ref_arr, index + 1, ref_count);
+		assert(ret_val == SUCCESS);
+
+		block->last_container_ref_count++;
 	}
 	return ret_val;
 }

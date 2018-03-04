@@ -11,3 +11,19 @@ Dedup_Error_Val dedup_file_create(PDedup_File file, uint32 sn, uint8 sys_num, ch
 	
 	return SUCCESS;
 }
+
+bool dedup_file_ContainsCurrentBlock(PDedup_File curr_file, uint32 block_sn, uint32 max_index)
+{
+	int index = 0;
+
+	assert(curr_file != NULL);
+
+	for(index = 0; index < max_index; index++)
+	{
+		if(curr_file->block_with_container_array[index].block_sn == block_sn)
+		{
+			return true;
+		}
+	}
+	return false;
+}

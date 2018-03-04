@@ -247,6 +247,13 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			bool max_distance_passed = (data_set->max_distance_between_containers_for_file != 0) && ((*containers_filled) - curr_block->last_container_sn > data_set->max_distance_between_containers_for_file);
 			bool max_pointers_passed = (data_set->max_pointers_to_block != 0) && (curr_block->last_container_ref_count == data_set->max_pointers_to_block);
 			/* For each block check if we need to insert it to the current container or not */
+
+			/*File contains multiple copies of the same block - need to handle only first copy*/
+			if(dedup_file_ContainsCurrentBlock(curr_file, curr_block_sn, block_index))
+			{
+				continue;
+			}
+
 			blockSize = curr_block->size;
 			if (not_in_container || max_distance_passed || max_pointers_passed)
 			{
@@ -348,7 +355,11 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 			assert(ret == SUCCESS);
 			ret = block_container_decrece_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
 			assert(ret == SUCCESS);
-			assert(curr_ref_count != INDEX_NOT_FOUND);
+			if(curr_ref_count == INDEX_NOT_FOUND)
+			{
+				continue;
+			}
+
 			if (curr_ref_count == 0)
 			{
 				if(curr_block->size > data_set->max_container_size)
