@@ -366,7 +366,7 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 			assert(ret == SUCCESS);
 			ret = container_del_file(curr_container, curr_file_sn);
 			assert(ret == SUCCESS);
-			ret = block_container_decrece_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
+			ret = block_container_decrease_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
 			assert(ret == SUCCESS);
 			if (curr_ref_count == INDEX_NOT_FOUND)
 			{
