@@ -13,7 +13,7 @@
 #define LINE_LENGTH (1024*32)
 #define PROGRAM_ARG_SIZE (5)
 #define MAX_SYSTEMS (128)
-#define MAX_FILE_NAME (128)
+#define MAX_FILE_NAME (256)
 #define DYNAMIC_ARRAY_SIZE (128)
 #define POOL_INITIAL_SIZE (128 * 1024 * 1024)
 #define POOL_EXTEND_SIZE (32*1024)
@@ -40,7 +40,7 @@ typedef struct folder_t
 	uint32 sys_num;
 } Folder, *PFolder;
 
-
+/* Calculates x^y */
 static inline uint32 pow_aux(uint32 x, uint32 y)
 {
 	if (y == 0)

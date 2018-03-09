@@ -1,15 +1,19 @@
 #include <time.h>
 #include "dedup_data_set.h"
 
+/* buffers to be used for parsing */
 char data_set_line1[LINE_LENGTH] = { 0 };
 char data_set_line2[LINE_LENGTH] = { 0 };
 char data_set_line3[LINE_LENGTH] = { 0 };
 
-Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_name, uint32 containers_max_size, uint32 max_distance, uint32 max_pointers)
+Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_name, uint32 containers_max_size, uint32 max_distance,
+	uint32 max_pointers)
 {
-	char file_name_no_type[MAX_FILE_NAME] = { 0 };
-	char num_string[MAX_FILE_NAME] = { 0 };
-
+	char *file_name_no_type = malloc(MAX_FILE_NAME);
+	char *num_string = malloc(MAX_FILE_NAME);
+	
+	memset(file_name_no_type, 0, MAX_FILE_NAME);
+	memset(num_string, 0, MAX_FILE_NAME);
 	memset(data_set, 0, sizeof(Dedup_data_set));
 
 	data_set->max_distance_between_containers_for_file = max_distance;
@@ -18,6 +22,7 @@ Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_na
 	data_set->num_of_active_systems = 0;
 	data_set->num_of_systems = 0;
 
+	/* Create the output file prefix and the error file name */
 	strcpy(file_name_no_type, file_name);
 	strtok(file_name_no_type, ".");
 	strcpy(data_set->error_file_name, file_name_no_type);
@@ -34,8 +39,10 @@ Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_na
 	sprintf(num_string, "_P%u", max_pointers);
 	strcat(data_set->error_file_name, num_string);
 	strcat(data_set->output_file_name, num_string);
-
 	strcat(data_set->error_file_name, ".err");
+
+	free(file_name_no_type);
+	free(num_string);
 
 	return SUCCESS;
 }
@@ -45,7 +52,7 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 	Dedup_Error_Val res = SUCCESS;
 
 	data_set->num_of_dirs = num_of_dirs;
-	// This is known in advance so we use malloc because this is only being done one time.
+	// This is known in advance so we use malloc because this is only being done once.
 	data_set->num_of_blocks = num_of_blocks;
 	data_set->block_arr = calloc(num_of_blocks, sizeof(Block));
 
@@ -76,6 +83,7 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 
 	return res;
 }
+
 Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 {
 	assert(NULL != data_set);
@@ -101,11 +109,18 @@ Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 
 Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FILE* fptr)
 {
-	bool line_end_with_comma = false;
+	if (strcmp(strtok(line, ","), "F") != 0)//This is not a File line!
+		return INVALID_ARGUMENT_FAILURE;
+	
+	/* 
+	lines in the input file may be extremly large, in need to check
+	alot of end cases like lines ends with commas, line ends in the 
+	middle of a value etc.
+	*/
+
+	bool line_end_with_comma = false; //if the line ends with a comma it means we are in the middle of a line.
 	if (line[strlen(line) - 1] == ',')
 		line_end_with_comma = true;
-	if (strcmp(strtok(line, ","), "F") != 0)
-		return INVALID_ARGUMENT_FAILURE;
 
 	Dedup_Error_Val res = SUCCESS;
 
@@ -322,7 +337,8 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			}
 			else
 			{
-				/* Block is already in a container, lets update the container with the new file sn and the file with the container sn, also update continer ref count for block */
+				/* Block is already in a container, lets update the container with the new file 
+				sn and the file with the container sn, also update continer ref count for block */
 				PContainer temp;
 				ret_val = container_dynamic_array_get(container_arr, curr_block->last_container_sn, &temp);
 				assert(ret_val == SUCCESS);

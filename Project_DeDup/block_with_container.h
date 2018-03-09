@@ -29,7 +29,7 @@ typedef struct block_with_container_pool_t
 /*
 	@Function:	block_with_container_pool_init
 
-	@Params:	Pointer to a pool to initialize.
+	@Params:	pool -	Pointer to a pool to initialize.
 
 	@Desc:		Initialize the pool and allocate it's initial memory.
 */
@@ -38,9 +38,9 @@ Dedup_Error_Val block_with_container_pool_init(PBlock_with_container_pool pool);
 /*
 	@Function:	block_with_container_pool_alloc
 
-	@Params:	Pointer to a pool to allocate memory from.
-				Requested size to allocate.
-				Pointer to the allocated memory will be returend in arr.
+	@Params:	pool -	Pointer to a pool to allocate memory from.
+				size -	Requested size to allocate.
+				arr -	Pointer to the allocated memory will be returend in arr.
 
 	@Desc:		Allocate a block with container array of the given size from the specifed memory pool.
 				The allocted address is return in the arr pointer.
@@ -50,7 +50,7 @@ Dedup_Error_Val block_with_container_pool_alloc(PBlock_with_container_pool pool,
 /*
 	@Function:	block_with_container_pool_destroy
 	
-	@Params:	Pointer to a pool to free.
+	@Params:	pool - Pointer to a pool to free.
 	
 	@Desc:		Free all memory of the specified pool.
 */
