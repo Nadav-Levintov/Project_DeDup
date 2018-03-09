@@ -8,8 +8,8 @@
 
 typedef struct container_file_t
 {
-	PDedup_File dedup_file;
 	uint32 print_gen;
+	PDedup_File dedup_file;
 } Container_file, *PContainer_file;
 
 typedef struct container_t
@@ -17,8 +17,8 @@ typedef struct container_t
 	uint32 sn;
 	uint32 size; //in bytes
 	uint32 num_of_files_using;
-	Dynamic_array file_array; //contains sn of files
 	uint32 num_of_blocks;
+	Dynamic_array file_array; //contains sn of files
 	Dynamic_array block_array; //contains sn of blocks
 } Container, *PContainer;
 
@@ -68,8 +68,8 @@ Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn, uint3
 typedef struct container_dynamic_array_t
 {
 	uint32 length;
-	Container arr[DYNAMIC_ARRAY_SIZE];
 	struct container_dynamic_array_t* next_arr;
+	Container arr[DYNAMIC_ARRAY_SIZE];
 }Container_dynamic_array, *PContainer_dynamic_array;
 
 /*
