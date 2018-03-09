@@ -54,7 +54,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	assert(res == SUCCESS);
 	char* line_ptr = containers_line1;
 
-	/* loop over file and read first letter and activate the relevant function */
+	/* loop over file and read first letter and invoke the relevant function */
 	while (line_ptr)
 	{
 		strcpy(containers_line2, containers_line1);
@@ -140,18 +140,17 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		printf("print \n");
 		printf("exit \n");
 		fflush(stdout);
+		
 		scanf(" %[^\n]s", (char*)&command_buffer);
 		cmd = strtok(command_buffer, " ");
-		/*option 3*/
+		
 		if (strcmp(cmd, "exit") == 0)
 		{
 			res = dedup_data_set_destroy(data_set);
 			printf("Good bye\n");
 			return res;
 		}
-
-		/*option 1*/
-		if (strcmp(cmd, "delete") == 0)
+		else if (strcmp(cmd, "delete") == 0)
 		{
 			cmd = strtok(NULL, " ");
 			if (cmd == NULL)
@@ -168,7 +167,6 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		}
 		else if (strcmp(cmd, "print") == 0)
 		{
-			/*option 2*/
 			res = print_data_set(data_set);
 			assert(res == SUCCESS);
 			printf("Data was printed to file\n");
