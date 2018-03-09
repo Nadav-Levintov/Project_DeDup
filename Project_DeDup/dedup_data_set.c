@@ -7,14 +7,9 @@ char data_set_line3[LINE_LENGTH] = { 0 };
 
 Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_name, uint32 containers_max_size, uint32 max_distance, uint32 max_pointers)
 {
-	char error_file_name[MAX_FILE_NAME];
-	char time_string[MAX_FILE_NAME];
-	FILE* error_file = NULL;
-	time_t rawtime;
-	struct tm * timeinfo;
+	char file_name_no_type[MAX_FILE_NAME] = { 0 };
+	char num_string[MAX_FILE_NAME] = { 0 };
 
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
 	memset(data_set, 0, sizeof(Dedup_data_set));
 
 	data_set->max_distance_between_containers_for_file = max_distance;
@@ -22,17 +17,25 @@ Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_na
 	data_set->max_container_size = containers_max_size;
 	data_set->num_of_active_systems = 0;
 	data_set->num_of_systems = 0;
-	
-	strcpy(error_file_name, file_name);
-	strcpy(data_set->error_file_name, strtok(error_file_name, "."));
-	sprintf(time_string, "_%d_%02d_%d_%02d_%02d_%02d", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, 
-		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
-	strcat(data_set->error_file_name, time_string);
-	strcat(data_set->error_file_name, "_error.txt");
-	error_file = fopen(data_set->error_file_name, "w");
 
-	assert(error_file != NULL);
-	fclose(error_file);
+	strcpy(file_name_no_type, file_name);
+	strtok(file_name_no_type, ".");
+	strcpy(data_set->error_file_name, file_name_no_type);
+	strcpy(data_set->output_file_name, file_name_no_type);
+	memset(num_string, 0, MAX_FILE_NAME);
+	sprintf(num_string, "_%uKB", containers_max_size);
+	strcat(data_set->error_file_name, num_string);
+	strcat(data_set->output_file_name, num_string);
+	memset(num_string, 0, MAX_FILE_NAME);
+	sprintf(num_string, "_D%u", max_distance);
+	strcat(data_set->error_file_name, num_string);
+	strcat(data_set->output_file_name, num_string);
+	memset(num_string, 0, MAX_FILE_NAME);
+	sprintf(num_string, "_P%u", max_pointers);
+	strcat(data_set->error_file_name, num_string);
+	strcat(data_set->output_file_name, num_string);
+
+	strcat(data_set->error_file_name, ".err");
 
 	return SUCCESS;
 }
@@ -53,7 +56,7 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 
 
 	data_set->num_of_files = num_of_files;
-	data_set->file_arr = calloc(num_of_files+1, sizeof(Dedup_File));
+	data_set->file_arr = calloc(num_of_files + 1, sizeof(Dedup_File));
 	data_set->file_arr[num_of_files].sys_num = 0;
 	if (data_set->file_arr == NULL)
 	{
@@ -207,7 +210,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 	Dedup_Error_Val ret_val = SUCCESS;
 	uint32 curr_file_sn, curr_block_sn;
 	uint32 *containers_filled = &(data_set->num_of_containers_filled);
-	uint64 checkMaxSize =0;
+	uint64 checkMaxSize = 0;
 	PDedup_File curr_file;
 	PBlock curr_block;
 	PContainer curr_container;
@@ -249,7 +252,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			/* For each block check if we need to insert it to the current container or not */
 
 			/*File contains multiple copies of the same block - need to handle only first copy*/
-			if(dedup_file_ContainsCurrentBlock(curr_file, curr_block_sn, block_index))
+			if (dedup_file_ContainsCurrentBlock(curr_file, curr_block_sn, block_index))
 			{
 				continue;
 			}
@@ -266,9 +269,19 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 					if (data_set->max_container_size < curr_block->size)
 					{
 						FILE* error_file = NULL;
-						error_file = fopen(data_set->error_file_name, "a");
+						if (!data_set->error_occured)
+						{
+							/*First error, lets create error file */
+							error_file = fopen(data_set->error_file_name, "w");
+							data_set->error_occured = true;
+						}
+						else 
+						{
+							/*Not irst error, lets append to error file */
+							error_file = fopen(data_set->error_file_name, "a");
+						}
 						assert(error_file != NULL);
-						
+
 						memset(data_set_line1, 0, LINE_LENGTH);
 						memset(data_set_line2, 0, LINE_LENGTH);
 						strcat(data_set_line1, "Block with SN: ");
@@ -355,14 +368,14 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 			assert(ret == SUCCESS);
 			ret = block_container_decrece_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
 			assert(ret == SUCCESS);
-			if(curr_ref_count == INDEX_NOT_FOUND)
+			if (curr_ref_count == INDEX_NOT_FOUND)
 			{
 				continue;
 			}
 
 			if (curr_ref_count == 0)
 			{
-				if(curr_block->size > data_set->max_container_size)
+				if (curr_block->size > data_set->max_container_size)
 				{
 					ret = container_del_block(curr_container, curr_block_sn, data_set->max_container_size);
 				}
@@ -408,13 +421,29 @@ Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, F
 	return res;
 }
 
-Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, char *file_name)
+Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set)
 {
 
 	Dedup_Error_Val res = SUCCESS;
 	FILE *pFile;
+	char file_name[MAX_FILE_NAME];
+	memset(file_name, 0, MAX_FILE_NAME);
+	strcpy(file_name, data_set->output_file_name);
+	char deletion_order[MAX_FILE_NAME];
+	memset(deletion_order, 0, MAX_FILE_NAME);
+
 	uint32 *container_sns = calloc(data_set->max_num_of_containers, sizeof(uint32));
 	assert(container_sns != NULL);
+	if (data_set->num_of_systems - data_set->num_of_active_systems > 0)
+	{
+		strcat(file_name, "_R");
+		for (uint32 i = 0; i < data_set->num_of_systems - data_set->num_of_active_systems; i++)
+		{
+			sprintf(deletion_order, "_%u", data_set->system_deletion_order[i]);
+			strcat(file_name, deletion_order);
+		}
+	}
+	strcat(file_name, ".csv");
 	pFile = fopen(file_name, "w");
 	assert(pFile != NULL);
 
@@ -422,7 +451,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, ch
 	res = dedup_data_print_header(data_set, pFile);
 
 	/*write files*/
-	int system_num;
+	uint32 system_num;
 	for (system_num = 1; system_num < MAX_SYSTEMS; system_num++)
 	{
 		uint32 file_sn = 0;
@@ -550,7 +579,7 @@ Dedup_Error_Val dedup_data_print_header(PDedup_data_set data_set, FILE *pFile)
 	memset(data_set_line2, 0, LINE_LENGTH);
 
 	strcat(data_set_line1, "# Num of containers: ");
-	sprintf(data_set_line2, "%u", data_set->num_of_containers_filled+1);
+	sprintf(data_set_line2, "%u", data_set->num_of_containers_filled + 1);
 	strcat(data_set_line1, data_set_line2);
 	strcat(data_set_line1, "\n");
 	fputs(data_set_line1, pFile);
@@ -582,10 +611,10 @@ Dedup_Error_Val dedup_data_print_header(PDedup_data_set data_set, FILE *pFile)
 	memset(data_set_line2, 0, LINE_LENGTH);
 
 	strcat(data_set_line1, "# Deletion order: ");
-	for(i = 0; i < data_set->num_of_systems - data_set->num_of_active_systems; i++)
+	for (i = 0; i < data_set->num_of_systems - data_set->num_of_active_systems; i++)
 	{
-			sprintf(data_set_line2, "%u ", data_set->system_deletion_order[i]);
-			strcat(data_set_line1, data_set_line2);	
+		sprintf(data_set_line2, "%u ", data_set->system_deletion_order[i]);
+		strcat(data_set_line1, data_set_line2);
 	}
 	strcat(data_set_line1, "\n");
 	fputs(data_set_line1, pFile);
@@ -617,7 +646,7 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 
 	uint32 containerNumInArray;
 	uint32 containerSn;
-	uint32 containersCount=0;
+	uint32 containersCount = 0;
 	PContainer pContainer = NULL;
 
 	for (containerNumInArray = 0; containerNumInArray < pDedup_file->block_amount; containerNumInArray++)

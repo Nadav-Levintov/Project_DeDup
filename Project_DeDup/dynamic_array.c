@@ -22,7 +22,6 @@ Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res
 Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 val) {
 	PDynamic_array curr_array = head;
 	uint32 curr_index = index;
-	uint32 temp = 0;
 
 	while (curr_index > curr_array->length - 1)
 	{
@@ -33,9 +32,7 @@ Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 v
 		curr_index -= curr_array->length;
 		curr_array = curr_array->next_arr;
 	}
-	temp = curr_array->arr[curr_index];
 	curr_array->arr[curr_index] = val;
-	temp = curr_array->arr[curr_index];
 	return SUCCESS;
 }
 

@@ -31,6 +31,9 @@ typedef struct dedup_data_set_t
 	uint32 num_of_active_systems;
 	uint32 max_num_of_containers;
 	char error_file_name[MAX_FILE_NAME];
+	char output_file_name[MAX_FILE_NAME];
+	bool error_occured;
+
 
 	Block_with_container_pool block_with_container_pool;
 	Memory_pool mem_pool;
@@ -42,7 +45,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, FILE* fptr);
 Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set);
 Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn);
-Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set, char *file_name);
+Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set);
 Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set);
 Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PDedup_File pDedup_file, uint32 * container_sns);
 Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile, const PContainer pContainer);

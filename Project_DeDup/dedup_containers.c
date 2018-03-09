@@ -73,7 +73,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 		{
 			strcpy(containers_line2, containers_line1);
 			fputs(containers_line2, dir_temp_file);
-			int curr_line_len = strlen(containers_line1) - 1;
+			size_t curr_line_len = strlen(containers_line1) - 1;
 			while (containers_line1[curr_line_len] != '\n')
 			{
 				line_ptr = fgets(containers_line1, LINE_LENGTH, fptr);
@@ -121,9 +121,9 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * header_
 	return dedup_data_set_init_arrays(data_set, num_of_files, num_of_blocks, num_of_dirs);
 }
 
-Dedup_Error_Val print_data_set(PDedup_data_set data_set, char *fileName)
+Dedup_Error_Val print_data_set(PDedup_data_set data_set)
 {
-	return dedup_data_set_print_active_systems(data_set, fileName);
+	return dedup_data_set_print_active_systems(data_set);
 }
 
 
@@ -137,7 +137,7 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 	{
 		printf("Please write what you wish to do: \n");
 		printf("delete <system numbers seperated by spaces>\n");
-		printf("print <file name> \n");
+		printf("print \n");
 		printf("exit \n");
 		fflush(stdout);
 		scanf(" %[^\n]s", (char*)&command_buffer);
@@ -169,17 +169,9 @@ Dedup_Error_Val user_interaction(PDedup_data_set data_set)
 		else if (strcmp(cmd, "print") == 0)
 		{
 			/*option 2*/
-			cmd = strtok(NULL, " ");
-			if (cmd == NULL)
-			{
-				printf("No file name was entered!\n");
-			}
-			else
-			{
-				res = print_data_set(data_set, cmd);
-				assert(res == SUCCESS);
-				printf("Data was printed to %s\n", cmd);
-			}
+			res = print_data_set(data_set);
+			assert(res == SUCCESS);
+			printf("Data was printed to file\n");
 		}
 		else
 		{
