@@ -206,7 +206,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 	}
 	else
 	{
-		res = dedup_file_create(&(data_set->file_arr[sn]), REMOVED_SN, 0, id, dir_sn, 0, NULL);
+		res = dedup_file_init(&(data_set->file_arr[sn]), REMOVED_SN, 0, id, dir_sn, 0, NULL);
 		assert(res == SUCCESS);
 	}
 	uint32 sys_num = atoi(strtok(id_cpy, "_"));
@@ -215,7 +215,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 		data_set->max_num_of_containers = block_amount;
 	}
 
-	res = dedup_file_create(&(data_set->file_arr[sn]), sn, sys_num, id, dir_sn, block_amount, bwc_array);
+	res = dedup_file_init(&(data_set->file_arr[sn]), sn, sys_num, id, dir_sn, block_amount, bwc_array);
 	assert(res == SUCCESS);
 
 	return SUCCESS;
@@ -267,7 +267,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			/* For each block check if we need to insert it to the current container or not */
 
 			/*File contains multiple copies of the same block - need to handle only first copy*/
-			if (dedup_file_ContainsCurrentBlock(curr_file, curr_block_sn, block_index))
+			if (dedup_file_contains_current_block(curr_file, curr_block_sn, block_index))
 			{
 				continue;
 			}
