@@ -67,7 +67,7 @@ Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn, uint3
 		assert(ret_val == SUCCESS);
 	}
 	
-	/* We may have had this block in the container more than once so we update size and num_of_blocks again */
+	/* We may have had this block in the container more than once so we update size and num_of_blocks again  - IS THIS CORRECT?*/
 	container->num_of_blocks--;
 	container->size -= size;
 

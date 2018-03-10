@@ -4,6 +4,7 @@ Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res
 	PDynamic_array curr_array = head;
 	uint32 curr_index = index;
 
+	/* Iterate over array nodes */
 	while (curr_index > curr_array->length - 1)
 	{
 		if (!curr_array->next_arr)
@@ -23,6 +24,7 @@ Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 v
 	PDynamic_array curr_array = head;
 	uint32 curr_index = index;
 
+	/* Iterate over array nodes */
 	while (curr_index > curr_array->length - 1)
 	{
 		if (!curr_array->next_arr)
@@ -32,6 +34,7 @@ Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 v
 		curr_index -= curr_array->length;
 		curr_array = curr_array->next_arr;
 	}
+
 	curr_array->arr[curr_index] = val;
 	return SUCCESS;
 }
@@ -40,10 +43,12 @@ Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool, uint32
 	PDynamic_array curr_array = head;
 	uint32 curr_index = curr_array->length;
 
+	/* Iterate until an empty cell is found */
 	while (curr_index > DYNAMIC_ARRAY_SIZE - 1)
 	{
 		if (!curr_array->next_arr)
 		{
+			/* If an empty cell is not found, allocate a new array node from pool */
 			uint32 *new_arr;
 			memory_pool_alloc(pool, sizeof(Dynamic_array), &new_arr);
 			assert(new_arr);
@@ -65,6 +70,7 @@ bool dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index)
 	PDynamic_array curr_array = head;
 	uint32 curr_index = 0, curr_array_index = 0;
 
+	/* Iterate over array nodes */
 	while (curr_array)
 	{
 		for (curr_index = 0; curr_index < curr_array->length; curr_index++)
