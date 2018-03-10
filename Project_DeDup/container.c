@@ -60,16 +60,14 @@ Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn, uint3
 	uint32 block_index_in_container;
 	Dedup_Error_Val ret_val = SUCCESS;
 	
-	/* check if the block is in the container, if it is - delete it */
+	/* check if the block is in the container, if it is - delete it, else do nothing.*/
 	if (dynamic_array_contains(block_array, block_sn, &block_index_in_container))
 	{
 		ret_val = dynamic_array_update(block_array, block_index_in_container, REMOVED_SN);
 		assert(ret_val == SUCCESS);
+		container->num_of_blocks--;
+		container->size -= size;
 	}
-	
-	/* We may have had this block in the container more than once so we update size and num_of_blocks again  - IS THIS CORRECT?*/
-	container->num_of_blocks--;
-	container->size -= size;
 
 	return SUCCESS;
 }
