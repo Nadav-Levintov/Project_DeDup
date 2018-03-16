@@ -267,7 +267,8 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			/* For each block check if we need to insert it to the current container or not */
 
 			/*File contains multiple copies of the same block - need to handle only first copy*/
-			if (dedup_file_contains_current_block(curr_file, curr_block_sn, block_index))
+			if (curr_block->last_container_sn != BLOCK_NOT_IN_CONTAINER &&
+				dedup_file_contains_current_block(curr_file, curr_block_sn, block_index))
 			{
 				continue;
 			}
