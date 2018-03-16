@@ -145,6 +145,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="dedup_script.sh" />
+    <None Include="old_params" />
+    <None Include="params" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

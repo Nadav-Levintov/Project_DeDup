@@ -76,5 +76,9 @@
     <None Include="dedup_script.sh">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="params">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="old_params" />
   </ItemGroup>
 </Project>
