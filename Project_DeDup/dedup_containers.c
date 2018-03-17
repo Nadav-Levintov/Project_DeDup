@@ -38,13 +38,13 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	char temp_file_name[MAX_FILE_NAME];
 	strcpy(temp_file_name, file_name);
 	strcpy(data_set->file_name_for_dir, strtok(temp_file_name, "."));
-	strcat(data_set->file_name_for_dir, "_temp_file");
+	strcat(data_set->file_name_for_dir, ".temp");
 
 	fptr = fopen(file_name, "r");
 	assert(fptr != NULL);
 
 	dir_temp_file = fopen(data_set->file_name_for_dir, "w");
-	assert(fptr != NULL);
+	assert(dir_temp_file != NULL);
 
 	/*Read header of file*/
 	memset(containers_line1, 0, LINE_LENGTH);

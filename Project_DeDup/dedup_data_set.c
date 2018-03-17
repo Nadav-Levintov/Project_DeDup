@@ -28,7 +28,7 @@ Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_na
 	strcpy(data_set->error_file_name, file_name_no_type);
 	strcpy(data_set->output_file_name, file_name_no_type);
 	memset(num_string, 0, MAX_FILE_NAME);
-	sprintf(num_string, "_%uKB", containers_max_size);
+	sprintf(num_string, "_%u", containers_max_size);
 	strcat(data_set->error_file_name, num_string);
 	strcat(data_set->output_file_name, num_string);
 	memset(num_string, 0, MAX_FILE_NAME);
@@ -109,23 +109,23 @@ Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 
 Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FILE* fptr)
 {
+	Dedup_Error_Val res = SUCCESS;
+
+	/*
+	lines in the input file may be extremly large, in need to check
+	alot of end cases like lines ends with commas, line ends in the
+	middle of a value etc.
+	*/
+	bool line_end_with_comma = false; //if the line ends with a comma it means we are in the middle of a line.
+	char last_char = line[strlen(line) - 1];
+	if (last_char == ',')
+		line_end_with_comma = true;
+
 	if (strcmp(strtok(line, ","), "F") != 0)//This is not a File line!
 		return INVALID_ARGUMENT_FAILURE;
 	
-	/* 
-	lines in the input file may be extremly large, in need to check
-	alot of end cases like lines ends with commas, line ends in the 
-	middle of a value etc.
-	*/
-
-	bool line_end_with_comma = false; //if the line ends with a comma it means we are in the middle of a line.
-	if (line[strlen(line) - 1] == ',')
-		line_end_with_comma = true;
-
-	Dedup_Error_Val res = SUCCESS;
-
 	uint32 sn = atoi(strtok(NULL, ","));
-
+	
 	char id[ID_LENGTH];
 	strcpy(id, strtok(NULL, ","));
 
@@ -199,6 +199,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 					line_ptr = strtok(NULL, ",");
 				}
 			}
+			assert(block_sn < data_set->num_of_blocks);
 			block_size = atoi(line_ptr);
 			data_set->block_arr[block_sn].size = block_size;
 			bwc_array[i].block_sn = block_sn;
@@ -267,7 +268,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 			/* For each block check if we need to insert it to the current container or not */
 
 			/*File contains multiple copies of the same block - need to handle only first copy*/
-			if (curr_block->last_container_sn != BLOCK_NOT_IN_CONTAINER &&
+			if (curr_block->last_container_sn != BLOCK_NOT_IN_CONTAINER && 
 				dedup_file_contains_current_block(curr_file, curr_block_sn, block_index))
 			{
 				continue;

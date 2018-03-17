@@ -3,29 +3,63 @@ CSV=".csv"
 LOG=".log"
 SIZE="4"
 KB="1024"
-MB=$((KB*KB))
-TOTALS=$((SIZE*MB))
+MB=$(( KB * KB ))
+TOTALS=$(( SIZE * MB ))
 DISTANCE="0"
 POINTERS="0"
+OUTFILE=""
+KBTGB=$(( 1024 * 1024 ))
+HTS=$(( 60 * 60 ))
+MTS=$(( 60 ))
+
+function log_run {
+	echo -n "${FILE}${CSV},${TOTALS},${POINTERS}," >> runs.csv
+	calc_time_and_ram
+	FILES=`cat ${FILE}${CSV} | grep 'Num files' | cut -d ":" -f 2 | tr -d '[:space:]'`
+	BLOCKS=`cat ${FILE}${CSV} | grep -e 'Num blocks' -e 'Num physical files' | cut -d ":" -f 2 | tr -d '[:space:]'`
+	
+	CONTAINERS=`cat ${OUTFILE}${CSV} | grep 'Num of containers' | cut -d ":" -f 2 | tr -d '[:space:]'`
+	echo ",${FILES},${BLOCKS},${CONTAINERS}" >> runs.csv
+}
+
+function calc_time_and_ram {
+	T=`cat time.csv | cut -d ',' -f 1`
+	MEM=`cat time.csv | cut -d ',' -f 2`
+	MEM=`bc -l <<< "scale=4; ${MEM}/${KBTGB}"`
+	echo -n "${T},${MEM}" >> runs.csv
+}
+
+function run_dedup {
+	OUTFILE="${FILE}_${TOTALS}_D${DISTANCE}_P${POINTERS}"
+    /usr/bin/time -f "%e,%M" -o time.csv ./dedup ${FILE}${CSV} ${TOTALS} ${DISTANCE} ${POINTERS} < params > "${FILE}_${TOTALS}_D${DISTANCE}_P${POINTERS}${LOG}" 
+	log_run
+	rm -rf time.csv
+}
+
+rm -rf time.csv
 rm -rf runs.csv
 
-for FILE in $( ls | grep ".csv" | cut -f 1 -d . ); do
+for FILE in $( ls | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
     rm -rf ${FILE}
+	rm -rf time.csv
 	mkdir ${FILE}
 
-    /usr/bin/time -f "%E, %M" ./dedup ${FILE}${CSV} ${TOTALS} ${DISTANCE} ${POINTERS} < params > "${FILE}_${SIZE}MB_D${DISTANCE}_P${POINTERS}${LOG}" 
+	#pointers=0, size=4MB
+	run_dedup
 
+	#pointers=128, size=4MB
 	POINTERS="128"
-    /usr/bin/time -f "%E, %M" ./dedup ${FILE}${CSV} ${TOTALS} ${DISTANCE} ${POINTERS} < params > "${FILE}_${SIZE}MB_D${DISTANCE}_P${POINTERS}${LOG}" 
+	run_dedup
 
-
+	#pointers=0, size=8MB
     SIZE="8"
     TOTALS=$((SIZE*MB))
     POINTERS="0"
-	/usr/bin/time -f "%E, %M" ./dedup ${FILE}${CSV} ${TOTALS} ${DISTANCE} ${POINTERS} < params > "${FILE}_${SIZE}MB_D${DISTANCE}_P${POINTERS}${LOG}" 
+	run_dedup
 
+	#pointers=128, size=8MB
     POINTERS="128"
-    /usr/bin/time -f "%E, %M" ./dedup ${FILE}${CSV} ${TOTALS} ${DISTANCE} ${POINTERS} < params > "${FILE}_${SIZE}MB_D${DISTANCE}_P${POINTERS}${LOG}"  
+	run_dedup
 
     mv *${FILE}*.* ${FILE}
 
