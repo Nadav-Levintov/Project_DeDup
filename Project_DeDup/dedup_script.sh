@@ -8,9 +8,7 @@ TOTALS=$(( SIZE * MB ))
 DISTANCE="0"
 POINTERS="0"
 OUTFILE=""
-KBTGB=$(( 1024 * 1024 ))
-HTS=$(( 60 * 60 ))
-MTS=$(( 60 ))
+KBTGB=MB
 
 function log_run {
 	echo -n "${FILE}${CSV},${TOTALS},${POINTERS}," >> runs.csv
