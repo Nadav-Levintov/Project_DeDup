@@ -16,8 +16,7 @@ function log_run {
 	echo -n "${FILE}${CSV},${TOTALS},${POINTERS}," >> runs.csv
 	calc_time_and_ram
 	FILES=`cat ${FILE}${CSV} | grep 'Num files' | cut -d ":" -f 2 | tr -d '[:space:]'`
-	BLOCKS=`cat ${FILE}${CSV} | grep -e 'Num blocks' -e 'Num physical files' | cut -d ":" -f 2 | tr -d '[:space:]'`
-	
+	BLOCKS=`cat ${FILE}${CSV} | grep -e 'Num blocks' -e 'Num physical files' | cut -d ":" -f 2 | tr -d '[:space:]'`	
 	CONTAINERS=`cat ${OUTFILE}${CSV} | grep 'Num of containers' | cut -d ":" -f 2 | tr -d '[:space:]'`
 	echo ",${FILES},${BLOCKS},${CONTAINERS}" >> runs.csv
 }
