@@ -44,6 +44,9 @@ for FILE in $( ls | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
 	mkdir ${FILE}
 
 	#pointers=0, size=4MB
+	SIZE="4"
+    TOTALS=$((SIZE*MB))
+    POINTERS="0"
 	run_dedup
 
 	#pointers=128, size=4MB
