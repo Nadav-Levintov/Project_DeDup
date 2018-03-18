@@ -8,7 +8,7 @@ TOTALS=$(( SIZE * MB ))
 DISTANCE="0"
 POINTERS="0"
 OUTFILE=""
-KBTGB=MB
+KBTGB=$MB
 
 function log_run {
 	echo -n "${FILE}${CSV},${TOTALS},${POINTERS}," >> runs.csv
@@ -22,7 +22,7 @@ function log_run {
 function calc_time_and_ram {
 	T=`cat time.csv | cut -d ',' -f 1`
 	MEM=`cat time.csv | cut -d ',' -f 2`
-	MEM=`bc -l <<< "scale=4; ${MEM}/${KBTGB}"`
+	MEM=`printf "%.2f\n" "$(bc -l <<< ${MEM}/${KBTGB} )"`
 	echo -n "${T},${MEM}" >> runs.csv
 }
 
@@ -36,7 +36,7 @@ function run_dedup {
 rm -rf time.csv
 rm -rf runs.csv
 
-for FILE in $( ls | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
+for FILE in $( ls -Sr | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
     rm -rf ${FILE}
 	rm -rf time.csv
 	mkdir ${FILE}
