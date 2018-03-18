@@ -34,6 +34,8 @@ function run_dedup {
 }
 
 rm -rf time.csv
+echo "#`date`" >> runs_old.csv
+cat runs.csv >> runs_old.csv
 rm -rf runs.csv
 
 for FILE in $( ls -Sr | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
