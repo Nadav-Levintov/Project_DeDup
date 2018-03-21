@@ -9,6 +9,7 @@ typedef struct dynamic_array_t
 {
 	uint32 length;
 	uint32 arr[DYNAMIC_ARRAY_SIZE];
+	uint32 max_val, min_val;
 	struct dynamic_array_t* next_arr;
 }Dynamic_array, *PDynamic_array;
 
@@ -34,7 +35,7 @@ Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res
 	@Desc:		The array[index] will be updated with the new value.
 				If the array is smaller than index an DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR error value will be returned.
 */
-Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 val);
+Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 val, bool update_min_max);
 
 /*
 	@Function:	dynamic_array_add
@@ -46,7 +47,7 @@ Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 v
 	@Desc:		Value val will be added to the end of the array, if required the array will be increased by
 				DYNAMIC_ARRAY_SIZE cells from the pool.
 */
-Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool,  uint32 val);
+Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool,  uint32 val, bool update_min_max);
 
 /*
 	@Function:	dynamic_array_contains

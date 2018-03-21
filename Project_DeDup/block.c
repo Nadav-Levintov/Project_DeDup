@@ -23,9 +23,9 @@ Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 cont
 	if (!containes)
 	{
 		/* New container, add it and add a refernce counter in the next array cell */
-		ret_val = dynamic_array_add(arr, pool, container_sn);
+		ret_val = dynamic_array_add(arr, pool, container_sn, true);
 		assert(ret_val == SUCCESS);
-		ret_val = dynamic_array_add(arr, pool, 1);
+		ret_val = dynamic_array_add(arr, pool, 1, false);
 		assert(ret_val == SUCCESS);
 
 		block->last_container_sn = container_sn;
@@ -36,7 +36,7 @@ Dedup_Error_Val block_add_container(PBlock block, PMemory_pool pool, uint32 cont
 		ret_val = dynamic_array_get(container_with_ref_arr, index + 1, &ref_count);
 		assert(ret_val == SUCCESS);
 		ref_count++;
-		ret_val = dynamic_array_update(container_with_ref_arr, index + 1, ref_count);
+		ret_val = dynamic_array_update(container_with_ref_arr, index + 1, ref_count, false);
 		assert(ret_val == SUCCESS);
 
 		block->last_container_ref_count++;
@@ -55,7 +55,7 @@ Dedup_Error_Val block_advance_last_container_ref_count(PBlock block)
 	
 	/* Update the continer with reference counter array accordingly */
 	Dedup_Error_Val ret_val = dynamic_array_update(container_with_ref_arr,
-		block->container_with_ref_count_array.length - 1, block->last_container_ref_count);
+		block->container_with_ref_count_array.length - 1, block->last_container_ref_count, false);
 	
 	assert(ret_val == SUCCESS);
 	
@@ -70,17 +70,19 @@ bool container_with_ref_array_dynamic_array_contains(PDynamic_array head, uint32
 	/* Iterate over the dynamic array nodes until the requested container SN is found or the dynamic array ends*/
 	while (curr_array)
 	{
-		for (curr_index = 0; curr_index < curr_array->length; curr_index+=2) //+2 because odd indexs are for refs
+		if (container_sn >= curr_array->min_val && container_sn <= curr_array->max_val)
 		{
-			if (curr_array->arr[curr_index] == container_sn)
+			for (curr_index = 0; curr_index < curr_array->length; curr_index += 2) //+2 because odd indexs are for refs
 			{
-				/* Index = curreny array index + number of array nodes we passed * size of array nodes size */
-				*index = curr_index + (curr_array_index * DYNAMIC_ARRAY_SIZE);
-				return true;
+				if (curr_array->arr[curr_index] == container_sn)
+				{
+					/* Index = curreny array index + number of array nodes we passed * size of array nodes size */
+					*index = curr_index + (curr_array_index * DYNAMIC_ARRAY_SIZE);
+					return true;
+				}
+
 			}
-
 		}
-
 		curr_array = curr_array->next_arr;
 		curr_array_index++;
 	}
@@ -101,7 +103,7 @@ Dedup_Error_Val block_container_decrease_ref_count(PBlock block, uint32 containe
 		ret = dynamic_array_get(container_with_ref_arr, container_index_in_arr + 1, ref_count);
 		assert(ret == SUCCESS);
 		(*ref_count)--;
-		ret = dynamic_array_update(container_with_ref_arr, container_index_in_arr + 1, *ref_count);
+		ret = dynamic_array_update(container_with_ref_arr, container_index_in_arr + 1, *ref_count, false);
 		assert(ret == SUCCESS);
 	}
 	else

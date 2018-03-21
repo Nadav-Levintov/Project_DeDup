@@ -1,5 +1,27 @@
 #include "dynamic_array.h"
 
+uint32 dynamic_array_find_max(PDynamic_array head)
+{
+	uint32 max = 0;
+	for (uint32 i = 0; i < head->length; i++)
+	{
+		if (max < head->arr[i])
+			max = head->arr[i];
+	}
+	return max;
+}
+
+uint32 dynamic_array_find_min(PDynamic_array head)
+{
+	uint32 min = 0xFFFFFFFFU;
+	for (uint32 i = 0; i < head->length; i++)
+	{
+		if (min > head->arr[i])
+			min = head->arr[i];
+	}
+	return min;
+}
+
 Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res) {
 	PDynamic_array curr_array = head;
 	uint32 curr_index = index;
@@ -20,9 +42,10 @@ Dedup_Error_Val dynamic_array_get(PDynamic_array head, uint32 index, uint32* res
 	return SUCCESS;
 }
 
-Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 val) {
+Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 val, bool update_min_max) {
 	PDynamic_array curr_array = head;
 	uint32 curr_index = index;
+	uint32 old_val;
 
 	/* Iterate over array nodes */
 	while (curr_index > curr_array->length - 1)
@@ -35,11 +58,25 @@ Dedup_Error_Val dynamic_array_update(PDynamic_array head, uint32 index, uint32 v
 		curr_array = curr_array->next_arr;
 	}
 
+	old_val = curr_array->arr[curr_index];
 	curr_array->arr[curr_index] = val;
+	if (update_min_max) {
+		if (old_val == curr_array->max_val)
+		{
+			curr_array->max_val = dynamic_array_find_max(curr_array);
+		}
+
+		if (old_val == curr_array->min_val)
+		{
+			curr_array->max_val = dynamic_array_find_min(curr_array);
+		}
+	}
+
+	
 	return SUCCESS;
 }
 
-Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool, uint32 val) {
+Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool, uint32 val, bool update_min_max) {
 	PDynamic_array curr_array = head;
 	uint32 curr_index = curr_array->length;
 
@@ -58,7 +95,23 @@ Dedup_Error_Val dynamic_array_add(PDynamic_array head, PMemory_pool pool, uint32
 		curr_array = curr_array->next_arr;
 		curr_index = curr_array->length;
 	}
-
+	if (update_min_max) {
+		if (curr_index == 0)
+		{
+			curr_array->max_val = val;
+			curr_array->min_val = val;
+		}
+		else {
+			if (val > curr_array->max_val)
+			{
+				curr_array->max_val = val;
+			}
+			if (val < curr_array->min_val)
+			{
+				curr_array->min_val = val;
+			}
+		}
+	}
 	curr_array->arr[curr_index] = val;
 	curr_array->length++;
 
@@ -73,16 +126,18 @@ bool dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index)
 	/* Iterate over array nodes */
 	while (curr_array)
 	{
-		for (curr_index = 0; curr_index < curr_array->length; curr_index++)
+		if (val <= curr_array->max_val && val >= curr_array->min_val)
 		{
-			if (curr_array->arr[curr_index] == val)
+			for (curr_index = 0; curr_index < curr_array->length; curr_index++)
 			{
-				*index = curr_index + (curr_array_index * DYNAMIC_ARRAY_SIZE);
-				return true;
+				if (curr_array->arr[curr_index] == val)
+				{
+					*index = curr_index + (curr_array_index * DYNAMIC_ARRAY_SIZE);
+					return true;
+				}
+
 			}
-
 		}
-
 		curr_array = curr_array->next_arr;
 		curr_array_index++;
 	}

@@ -260,3 +260,5 @@ paket-files/
 __pycache__/
 *.pyc
 /Project_DeDup/user029AllDates_8kb_b.csv
+*.csv
+*.err

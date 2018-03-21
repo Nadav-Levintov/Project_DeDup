@@ -10,7 +10,7 @@ Dedup_Error_Val container_add_file(PContainer container, PMemory_pool pool, uint
 	/* check if the file is already in the container, if not - add it */
 	if (!containes)
 	{
-		ret_val = dynamic_array_add(arr, pool, file_sn);
+		ret_val = dynamic_array_add(arr, pool, file_sn, true);
 		assert(ret_val == SUCCESS);
 		container->num_of_files_using++;
 	}
@@ -28,7 +28,7 @@ Dedup_Error_Val container_add_block(PContainer container, PMemory_pool pool, uin
 	/* check if the block is already in the container, if not - add it and update the container size */
 	if (!containes)
 	{
-		ret_val = dynamic_array_add(arr, pool, block_sn);
+		ret_val = dynamic_array_add(arr, pool, block_sn, true);
 		assert(ret_val == SUCCESS);
 		container->num_of_blocks++;
 		container->size += block_size;
@@ -46,7 +46,7 @@ Dedup_Error_Val container_del_file(PContainer container, uint32 file_sn)
 	/* check if the file is in the container, if it is - delete it, else - do nothing */
 	if (dynamic_array_contains(file_array, file_sn, &file_index_in_container))
 	{
-		ret_val = dynamic_array_update(file_array, file_index_in_container, REMOVED_SN);
+		ret_val = dynamic_array_update(file_array, file_index_in_container, REMOVED_SN, true);
 		container->num_of_files_using--;
 		assert(ret_val == SUCCESS);
 	}
@@ -63,7 +63,7 @@ Dedup_Error_Val container_del_block(PContainer container, uint32 block_sn, uint3
 	/* check if the block is in the container, if it is - delete it, else do nothing.*/
 	if (dynamic_array_contains(block_array, block_sn, &block_index_in_container))
 	{
-		ret_val = dynamic_array_update(block_array, block_index_in_container, REMOVED_SN);
+		ret_val = dynamic_array_update(block_array, block_index_in_container, REMOVED_SN, true);
 		assert(ret_val == SUCCESS);
 		container->num_of_blocks--;
 		container->size -= size;
