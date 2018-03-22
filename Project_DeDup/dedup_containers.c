@@ -55,7 +55,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	char* line_ptr = containers_line1;
 
 	/* loop over file and read first letter and invoke the relevant function */
-	while (line_ptr)
+	while (line_ptr && !feof(fptr))
 	{
 		strcpy(containers_line2, containers_line1);
 		char* prefix = strtok(containers_line2, ",");
