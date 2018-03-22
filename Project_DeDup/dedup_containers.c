@@ -74,7 +74,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 			strcpy(containers_line2, containers_line1);
 			fputs(containers_line2, dir_temp_file);
 			size_t curr_line_len = strlen(containers_line1) - 1;
-			while (containers_line1[curr_line_len] != '\n')
+			while (containers_line1[curr_line_len] != '\n' && !feof(fptr))
 			{
 				line_ptr = fgets(containers_line1, LINE_LENGTH, fptr);
 				strcpy(containers_line2, containers_line1);
