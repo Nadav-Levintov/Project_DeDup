@@ -59,6 +59,7 @@ Dedup_Error_Val parse_file(char* file_name, PDedup_data_set data_set)
 	{
 		strcpy(containers_line2, containers_line1);
 		char* prefix = strtok(containers_line2, ",");
+
 		if (strcmp(prefix, "F") == 0)
 		{
 			res = dedup_data_set_add_file(data_set, containers_line1, fptr);

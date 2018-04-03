@@ -3,7 +3,7 @@
 #define DEDUP_FILE_H
 
 #include "comdef.h"
-#include "block_with_container.h"
+#include "avltree.h"
 #include <stdio.h>
 
 typedef struct dedup_file_t
@@ -11,10 +11,18 @@ typedef struct dedup_file_t
 	uint32 sn;
 	uint32 dir_sn;
 	uint32 block_amount;
-	PBlock_with_container block_with_container_array;
+	//PBlock_with_container block_with_container_array;
+	avltree block_with_container_tree;
+	avltree container_tree;
 	char id[ID_LENGTH];
 	uint8 sys_num;
 } Dedup_File, *PDedup_File;
+
+typedef struct block_with_container_t
+{
+	uint32 block_sn;
+	uint32 container_sn;
+} Block_with_container, *PBlock_with_container;
 
 /*
 	@Function:	dedup_file_init
@@ -29,8 +37,8 @@ typedef struct dedup_file_t
 	
 	@Desc:		Initialize the provided file with the given arguments
 */
-Dedup_Error_Val dedup_file_init(PDedup_File file, uint32 sn, uint8 sys_num, char* id, uint32 dir_sn, uint32 block_amount,
-	PBlock_with_container block_with_container_array);
+Dedup_Error_Val dedup_file_init(PDedup_File file, uint32 sn, uint8 sys_num, char* id, uint32 dir_sn,
+ uint32 block_amount);
 
 /*
 	@Function:	dedup_file_init

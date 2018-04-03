@@ -34,13 +34,15 @@ function run_dedup {
 }
 
 rm -rf time.csv
-if [ ! -f "runs.csv"]
+if [ -f runs.csv ]
 then
 	cat runs.csv >> runs_old.csv
 	rm -rf runs.csv
 fi
 
-echo "#`date`" > runs.csv
+echo "Input file, Max Container size, Max Pointers to block, Run time [Seconds], RAM[GB], Files in input, Blocks in input, Containers in output" >> runs.csv
+echo "#`date`" >> runs.csv
+
 
 for FILE in $( ls -Sr | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
     rm -rf ${FILE}

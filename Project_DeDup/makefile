@@ -1,7 +1,7 @@
 # Define required macros here
 SHELL = /bin/sh
 
-OBJS =  block.o block_with_container.o container.o dedup_containers.o dedup_data_set.o dedup_file.o dynamic_array.o memory_pool.o
+OBJS =  block.o block_with_container.o container.o dedup_containers.o dedup_data_set.o dedup_file.o dynamic_array.o memory_pool.o avltree.o
 CFLAG = -Wall -g -std=c99
 CC = gcc
 INCLUDE = *.h
@@ -35,6 +35,9 @@ dynamic_array.o: dynamic_array.c dynamic_array.h
 	
 memory_pool.o: memory_pool.c memory_pool.h
 	${CC} ${CFLAG} -c memory_pool.c  
+
+avltree.o: avltree.c avltree.h
+	${CC} ${CFLAG} -c avltree.c  
 
 clean:
 	-rm -f *.o 

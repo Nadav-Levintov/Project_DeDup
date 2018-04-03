@@ -8,7 +8,7 @@
 #include "block.h"
 #include "container.h"
 #include "memory_pool.h"
-#include "block_with_container.h"
+#include "avltree.h"
 
 typedef struct dedup_data_set_t
 {
@@ -26,8 +26,9 @@ typedef struct dedup_data_set_t
 	uint32 max_num_of_containers;
 	PDedup_File file_arr;
 	PBlock block_arr;
-	Container_dynamic_array container_arr;
-	Block_with_container_pool block_with_container_pool;
+	PContainer curr_container;
+	//Container_dynamic_array container_arr;
+	avltree container_tree;
 	Memory_pool mem_pool;
 	char file_name_for_dir[MAX_FILE_NAME];
 	char error_file_name[MAX_FILE_NAME];

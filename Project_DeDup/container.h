@@ -5,6 +5,7 @@
 #include "comdef.h"
 #include "dynamic_array.h"
 #include "dedup_file.h"
+#include "avltree.h"
 
 typedef struct container_file_t
 {
@@ -18,8 +19,8 @@ typedef struct container_t
 	uint32 size; //in bytes
 	uint32 num_of_files_using;
 	uint32 num_of_blocks;
-	Dynamic_array file_array; //contains sn of files
-	Dynamic_array block_array; //contains sn of blocks
+	avltree file_array; //contains sn of files
+	avltree block_array; //contains sn of blocks
 } Container, *PContainer;
 
 /*
@@ -93,5 +94,7 @@ Dedup_Error_Val  container_dynamic_array_get(PContainer_dynamic_array head, uint
 	@Desc:		Add a new initialized container to the array and return a pointer to it.
 */
 Dedup_Error_Val  container_dynamic_array_add_and_get(PContainer_dynamic_array head, PMemory_pool pool, PContainer* res);
+
+void create_container(PContainer *pContainer, PMemory_pool pool, uint32 container_sn);
 
 #endif // !CONTAINER_H

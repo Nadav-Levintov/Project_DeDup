@@ -3,7 +3,7 @@
 #define BLOCK_H
 
 #include "comdef.h"
-#include "dynamic_array.h"
+#include "avltree.h"
 
 #define BLOCK_NOT_IN_CONTAINER (0xFFFFFFFFU)
 
@@ -14,9 +14,16 @@ typedef struct block_t
 	uint32 shared_by_files;
 	uint32 last_container_sn;
 	uint32 last_container_ref_count;
-	Dynamic_array container_with_ref_count_array; // even indexes = container SN ; odd indexes = ref count
+	avltree container_with_ref_count_tree;
 	char id[ID_LENGTH];
 } Block, *PBlock;
+
+
+typedef struct container_and_ref_count_t
+{
+	uint32 container_sn;
+	uint32 ref_count;
+} Container_and_ref_count, *PContainer_and_ref_count;
 
 /*
 	@Function:	block_init
@@ -65,7 +72,8 @@ Dedup_Error_Val block_advance_last_container_ref_count(PBlock block);
 
 	@Return:	True if the array contins val, False if not.
 */
-bool container_with_ref_array_dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index);
+//bool container_with_ref_array_dynamic_array_contains(PDynamic_array head, uint32 val, uint32 * index);
+bool container_with_ref_array_dynamic_array_contains(avltree* tree, uint32 container_sn);
 
 /*
 @Function:	block_container_decrease_ref_count

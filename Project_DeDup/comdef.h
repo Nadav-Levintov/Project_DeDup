@@ -20,6 +20,7 @@
 #define REMOVED_SN (0xFFFFFFFFU)
 #define INDEX_NOT_FOUND (0xFFFFFFFFU)
 #define BLOCK_CONTAINER_POOL_INITIAL_SZIZE (1024*1024*128)
+#define LINE_OVER_FLOW_GAURD 5
 
 typedef uint8_t uint8;
 typedef uint32_t uint32;

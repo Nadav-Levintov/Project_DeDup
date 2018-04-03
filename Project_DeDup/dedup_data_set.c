@@ -6,12 +6,55 @@ char data_set_line1[LINE_LENGTH] = { 0 };
 char data_set_line2[LINE_LENGTH] = { 0 };
 char data_set_line3[LINE_LENGTH] = { 0 };
 
+static void print_sns_from_tree_to_file(void* data, FILE *pFile)
+{
+	uint32 value = *(uint32*)(data);
+	if (strlen(data_set_line1) + strlen(data_set_line2) + LINE_OVER_FLOW_GAURD >= LINE_LENGTH)
+	{
+		fputs(data_set_line1, pFile);
+		memset(data_set_line1, 0, LINE_LENGTH);
+	}
+	strcat(data_set_line1, ",");
+	sprintf(data_set_line2, "%u", value);
+	strcat(data_set_line1, data_set_line2);
+}
+
+static void print_container_from_tree_to_file(void* data, FILE *pFile, PDedup_data_set data_set)
+{
+	uint32 sn = *(uint32*)(data);
+	Container cmpCont;
+	cmpCont.sn = sn;
+	PContainer conainter = avltree_find(&data_set->container_tree, &cmpCont);
+
+	if (strlen(data_set_line1) + strlen(data_set_line2) + LINE_OVER_FLOW_GAURD >= LINE_LENGTH)
+	{
+		fputs(data_set_line1, pFile);
+		memset(data_set_line1, 0, LINE_LENGTH);
+	}
+	strcat(data_set_line1, ",");
+	sprintf(data_set_line2, "%u", sn);
+	strcat(data_set_line1, data_set_line2);
+	strcat(data_set_line1, ",");
+	sprintf(data_set_line2, "%u", conainter->size);
+	strcat(data_set_line1, data_set_line2);
+}
+
+
+
+int cmp_containers(const void* cnt1, const void* cnt2)
+{
+	PContainer pCnt1 = (PContainer)cnt1;
+	PContainer pCnt2 = (PContainer)cnt2;
+
+	return pCnt1->sn - pCnt2->sn;
+}
+
 Dedup_Error_Val dedup_data_set_init_args(PDedup_data_set data_set, char* file_name, uint32 containers_max_size, uint32 max_distance,
 	uint32 max_pointers)
 {
 	char *file_name_no_type = malloc(MAX_FILE_NAME);
 	char *num_string = malloc(MAX_FILE_NAME);
-	
+
 	memset(file_name_no_type, 0, MAX_FILE_NAME);
 	memset(num_string, 0, MAX_FILE_NAME);
 	memset(data_set, 0, sizeof(Dedup_data_set));
@@ -64,22 +107,14 @@ Dedup_Error_Val dedup_data_set_init_arrays(PDedup_data_set data_set, uint32 num_
 
 	data_set->num_of_files = num_of_files;
 	data_set->file_arr = calloc(num_of_files + 1, sizeof(Dedup_File));
-	data_set->file_arr[num_of_files].sys_num = 0;
 	if (data_set->file_arr == NULL)
 	{
 		free(data_set->block_arr);
 		return ALLOCATION_FAILURE;
 	}
+	data_set->file_arr[num_of_files].sys_num = 0;
 
-
-	res = block_with_container_pool_init(&data_set->block_with_container_pool);
-	if (res != SUCCESS)
-	{
-		free(data_set->block_arr);
-		free(data_set->file_arr);
-	}
-
-	data_set->container_arr.length = 1;
+	avltree_init(cmp_containers, &(data_set->container_tree));
 
 	return res;
 }
@@ -93,9 +128,6 @@ Dedup_Error_Val dedup_data_set_destroy(PDedup_data_set data_set)
 
 	/*Destroy all files*/
 	free(data_set->file_arr);
-
-	/*Destroy block_with_container_pool*/
-	block_with_container_pool_destroy(&(data_set->block_with_container_pool));
 
 	/*Destroy memory pool*/
 	memory_pool_destroy(&data_set->mem_pool);
@@ -123,9 +155,9 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 
 	if (strcmp(strtok(line, ","), "F") != 0)//This is not a File line!
 		return INVALID_ARGUMENT_FAILURE;
-	
+
 	uint32 sn = atoi(strtok(NULL, ","));
-	
+
 	char id[ID_LENGTH];
 	strcpy(id, strtok(NULL, ","));
 
@@ -136,12 +168,12 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 
 	uint32 block_amount = atoi(strtok(NULL, ","));
 
+	res = dedup_file_init(&(data_set->file_arr[sn]), sn, 0, id, dir_sn, block_amount);
+	assert(res == SUCCESS);
+
 	/* The #blocks is known so we will not use dynamic array here */
-	PBlock_with_container bwc_array;
 	char* line_ptr;
 	if (block_amount > 0) {
-
-		block_with_container_pool_alloc(&data_set->block_with_container_pool, block_amount * sizeof(Block_with_container), &bwc_array);
 
 		uint32 block_sn, block_size;
 		for (uint32 i = 0; i < block_amount; i++)
@@ -202,42 +234,165 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 			assert(block_sn < data_set->num_of_blocks);
 			block_size = atoi(line_ptr);
 			data_set->block_arr[block_sn].size = block_size;
-			bwc_array[i].block_sn = block_sn;
+
+			PBlock_with_container block_w_container = NULL;
+			res = memory_pool_alloc(&data_set->mem_pool, sizeof(Block_with_container), (uint32**)&block_w_container);
+			assert(res == SUCCESS);
+			block_w_container->block_sn = block_sn;
+			avltree_add(&data_set->file_arr[sn].block_with_container_tree, block_w_container, &data_set->mem_pool);
 		}
 	}
 	else
 	{
-		res = dedup_file_init(&(data_set->file_arr[sn]), REMOVED_SN, 0, id, dir_sn, 0, NULL);
+		res = dedup_file_init(&(data_set->file_arr[sn]), REMOVED_SN, 0, id, dir_sn, 0);
 		assert(res == SUCCESS);
 	}
-	uint32 sys_num = atoi(strtok(id_cpy, "_"));
 	if (block_amount > data_set->max_num_of_containers)
 	{
 		data_set->max_num_of_containers = block_amount;
 	}
 
-	res = dedup_file_init(&(data_set->file_arr[sn]), sn, sys_num, id, dir_sn, block_amount, bwc_array);
-	assert(res == SUCCESS);
+	uint32 sys_num = atoi(strtok(id_cpy, "_"));
+	data_set->file_arr[sn].sys_num = sys_num;
 
 	return SUCCESS;
 }
+
+static void dedup_data_set_analyze_file_blocks_to_containers(void* data, PDedup_data_set data_set, uint32 curr_file_sn)
+{
+	Dedup_Error_Val ret_val = SUCCESS;
+	PBlock curr_block;
+	uint32 blockSize = 0, checkMaxSize = 0;
+	uint32 *containers_filled = &(data_set->num_of_containers_filled);
+	PBlock_with_container block_w_container = (PBlock_with_container)data;
+	PContainer* curr_container = &data_set->curr_container;
+	curr_block = &(data_set->block_arr[block_w_container->block_sn]);
+	PDedup_File curr_file = &data_set->file_arr[curr_file_sn];
+
+	bool not_in_container = curr_block->last_container_sn == BLOCK_NOT_IN_CONTAINER;
+	bool max_distance_passed = (data_set->max_distance_between_containers_for_file != 0) && ((*containers_filled) - curr_block->last_container_sn > data_set->max_distance_between_containers_for_file);
+	bool max_pointers_passed = (data_set->max_pointers_to_block != 0) && (curr_block->last_container_ref_count == data_set->max_pointers_to_block);
+	/* For each block check if we need to insert it to the current container or not */
+
+	blockSize = curr_block->size;
+	if (not_in_container || max_distance_passed || max_pointers_passed)
+	{
+		/* We need to insert current block to the current container */
+		checkMaxSize = (uint64)(*curr_container)->size + (uint64)curr_block->size;
+		if (checkMaxSize > data_set->max_container_size || curr_block->last_container_sn == (*curr_container)->sn)
+		{
+			/* Current container cannot hold the block, lets open a new container
+			* size is to big or to many pointers to block and current container already contains the block */
+			if (data_set->max_container_size < curr_block->size)
+			{
+				FILE* error_file = NULL;
+				if (!data_set->error_occured)
+				{
+					/*First error, lets create error file */
+					error_file = fopen(data_set->error_file_name, "w");
+					data_set->error_occured = true;
+				}
+				else
+				{
+					/*Not irst error, lets append to error file */
+					error_file = fopen(data_set->error_file_name, "a");
+				}
+				assert(error_file != NULL);
+
+				memset(data_set_line1, 0, LINE_LENGTH);
+				memset(data_set_line2, 0, LINE_LENGTH);
+				strcat(data_set_line1, "Block with SN: ");
+				sprintf(data_set_line2, "%u ", curr_block->sn);
+				strcat(data_set_line1, data_set_line2);
+
+				strcat(data_set_line1, "size is: ");
+				sprintf(data_set_line2, "%u ", curr_block->size);
+				strcat(data_set_line1, data_set_line2);
+
+				strcat(data_set_line1, "larger than the Max container size allowed:  ");
+				sprintf(data_set_line2, "%u ", data_set->max_container_size);
+				strcat(data_set_line1, data_set_line2);
+
+				strcat(data_set_line1, "\n");
+				fputs(data_set_line1, error_file);
+				blockSize = data_set->max_container_size;
+				fclose(error_file);
+			}
+
+			create_container(curr_container, &(data_set->mem_pool), data_set->container_tree.count);
+			avltree_add(&(data_set->container_tree), *curr_container, &(data_set->mem_pool));
+
+			assert(ret_val == SUCCESS);
+			(*containers_filled)++;
+
+		}
+
+		ret_val = container_add_file(*curr_container, &data_set->mem_pool, curr_file_sn);
+		assert(ret_val == SUCCESS);
+
+		ret_val = container_add_block(*curr_container, &data_set->mem_pool, block_w_container->block_sn, blockSize);
+		assert(ret_val == SUCCESS);
+
+		ret_val = block_add_container(curr_block, &data_set->mem_pool, *containers_filled);
+		assert(ret_val == SUCCESS);
+
+		/* we update the file that the current block is in the current container */
+		block_w_container->container_sn = *containers_filled;
+		uint32* container_sn_alloc = NULL;
+		ret_val = memory_pool_alloc(&data_set->mem_pool, sizeof(uint32), (uint32**)&container_sn_alloc);
+		assert(ret_val == SUCCESS);
+
+		*container_sn_alloc = *containers_filled;
+		avltree_add(&curr_file->container_tree, container_sn_alloc, &data_set->mem_pool);
+	}
+	else
+	{
+		/* Block is already in a container, lets update the container with the new file
+		sn and the file with the container sn, also update continer ref count for block */
+		PContainer temp;
+		Container cmp_container = { 0 };
+		cmp_container.sn = curr_block->last_container_sn;
+		//ret_val = container_dynamic_array_get(container_arr, curr_block->last_container_sn, &temp);
+
+		temp = avltree_find(&(data_set->container_tree), &cmp_container);
+		assert(temp != NULL);
+
+		ret_val = container_add_file(temp, &data_set->mem_pool, curr_file_sn);
+		assert(ret_val == SUCCESS);
+		ret_val = block_advance_last_container_ref_count(curr_block);
+		assert(ret_val == SUCCESS);
+
+		/* we update the file that the current block is in the current container */
+		block_w_container->container_sn = curr_block->last_container_sn;
+		uint32* container_sn_alloc = NULL;
+		ret_val = memory_pool_alloc(&data_set->mem_pool, sizeof(uint32), (uint32**)&container_sn_alloc);
+		assert(ret_val == SUCCESS);
+
+		*container_sn_alloc = curr_block->last_container_sn;
+		avltree_add(&curr_file->container_tree, container_sn_alloc, &data_set->mem_pool);
+	}
+}
+
 Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 {
 	Dedup_Error_Val ret_val = SUCCESS;
-	uint32 curr_file_sn, curr_block_sn;
+	uint32 curr_file_sn;
 	uint32 *containers_filled = &(data_set->num_of_containers_filled);
 	uint64 checkMaxSize = 0;
 	PDedup_File curr_file;
-	PBlock curr_block;
-	PContainer curr_container;
-	PContainer_dynamic_array container_arr = &(data_set->container_arr);
-	ret_val = container_dynamic_array_get(container_arr, 0, &curr_container);
+	uint64 container_index = 0;
+
+	create_container(&data_set->curr_container, &(data_set->mem_pool), container_index);
+	avltree_add(&(data_set->container_tree), data_set->curr_container, &(data_set->mem_pool));
+	container_index++;
+
 	assert(ret_val == SUCCESS);
 	uint32 currentSystemNum = 0;
 	uint32 blockSize = 0;
 
 	for (curr_file_sn = 0; curr_file_sn < data_set->num_of_files; curr_file_sn++)
 	{
+
 		curr_file = &(data_set->file_arr[curr_file_sn]);
 		if (curr_file->sn == REMOVED_SN)
 		{
@@ -248,115 +403,60 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 		{
 			assert(curr_file->sys_num > currentSystemNum);
 			data_set->system_active[curr_file->sys_num] = true;
-
 			data_set->num_of_systems++;
 			data_set->num_of_active_systems++;
-
 			currentSystemNum = curr_file->sys_num;
 			data_set->system_file_index[curr_file->sys_num] = curr_file_sn;
 		}
 
 		/* For each file iterate over all blocks */
-		for (uint32 block_index = 0; block_index < curr_file->block_amount; block_index++)
-		{
-			curr_block_sn = curr_file->block_with_container_array[block_index].block_sn;
-			curr_block = &(data_set->block_arr[curr_block_sn]);
-
-			bool not_in_container = curr_block->last_container_sn == BLOCK_NOT_IN_CONTAINER;
-			bool max_distance_passed = (data_set->max_distance_between_containers_for_file != 0) && ((*containers_filled) - curr_block->last_container_sn > data_set->max_distance_between_containers_for_file);
-			bool max_pointers_passed = (data_set->max_pointers_to_block != 0) && (curr_block->last_container_ref_count == data_set->max_pointers_to_block);
-			/* For each block check if we need to insert it to the current container or not */
-
-			/*File contains multiple copies of the same block - need to handle only first copy*/
-			if (curr_block->last_container_sn != BLOCK_NOT_IN_CONTAINER && 
-				dedup_file_contains_current_block(curr_file, curr_block_sn, block_index))
-			{
-				continue;
-			}
-
-			blockSize = curr_block->size;
-			if (not_in_container || max_distance_passed || max_pointers_passed)
-			{
-				/* We need to insert current block to the current container */
-				checkMaxSize = (uint64)curr_container->size + (uint64)curr_block->size;
-				if (checkMaxSize > data_set->max_container_size || curr_block->last_container_sn == curr_container->sn)
-				{
-					/* Current container cannot hold the block, lets open a new container
-					 * size is to big or to many pointers to block and current container already contains the block */
-					if (data_set->max_container_size < curr_block->size)
-					{
-						FILE* error_file = NULL;
-						if (!data_set->error_occured)
-						{
-							/*First error, lets create error file */
-							error_file = fopen(data_set->error_file_name, "w");
-							data_set->error_occured = true;
-						}
-						else 
-						{
-							/*Not irst error, lets append to error file */
-							error_file = fopen(data_set->error_file_name, "a");
-						}
-						assert(error_file != NULL);
-
-						memset(data_set_line1, 0, LINE_LENGTH);
-						memset(data_set_line2, 0, LINE_LENGTH);
-						strcat(data_set_line1, "Block with SN: ");
-						sprintf(data_set_line2, "%u ", curr_block->sn);
-						strcat(data_set_line1, data_set_line2);
-
-						strcat(data_set_line1, "size is: ");
-						sprintf(data_set_line2, "%u ", curr_block->size);
-						strcat(data_set_line1, data_set_line2);
-
-						strcat(data_set_line1, "larger than the Max container size allowed:  ");
-						sprintf(data_set_line2, "%u ", data_set->max_container_size);
-						strcat(data_set_line1, data_set_line2);
-
-						strcat(data_set_line1, "\n");
-						fputs(data_set_line1, error_file);
-						blockSize = data_set->max_container_size;
-						fclose(error_file);
-					}
-					ret_val = container_dynamic_array_add_and_get(container_arr, &data_set->mem_pool, &curr_container);
-					assert(ret_val == SUCCESS);
-					(*containers_filled)++;
-
-				}
-
-				ret_val = container_add_file(curr_container, &data_set->mem_pool, curr_file_sn);
-				assert(ret_val == SUCCESS);
-
-				ret_val = container_add_block(curr_container, &data_set->mem_pool, curr_block_sn, blockSize);
-				assert(ret_val == SUCCESS);
-
-				ret_val = block_add_container(curr_block, &data_set->mem_pool, *containers_filled);
-				assert(ret_val == SUCCESS);
-
-				/* we update the file that the current block is in the current container */
-				curr_file->block_with_container_array[block_index].container_sn = *containers_filled;
-
-			}
-			else
-			{
-				/* Block is already in a container, lets update the container with the new file 
-				sn and the file with the container sn, also update continer ref count for block */
-				PContainer temp;
-				ret_val = container_dynamic_array_get(container_arr, curr_block->last_container_sn, &temp);
-				assert(ret_val == SUCCESS);
-				ret_val = container_add_file(temp, &data_set->mem_pool, curr_file_sn);
-				assert(ret_val == SUCCESS);
-				ret_val = block_advance_last_container_ref_count(curr_block);
-				assert(ret_val == SUCCESS);
-
-				/* we update the file that the current block is in the current container */
-				curr_file->block_with_container_array[block_index].container_sn = curr_block->last_container_sn;
-			}
-		}
+		avltree_for_each_block(&curr_file->block_with_container_tree, data_set, curr_file_sn, dedup_data_set_analyze_file_blocks_to_containers);
 	}
 
 	return SUCCESS;
 }
+void dedup_data_set_delete_files_blocks(void* data, PDedup_data_set data_set, uint32 curr_file_sn)
+{
+	Dedup_Error_Val ret = SUCCESS;
+	PBlock curr_block;
+	uint32 blockSize = 0, checkMaxSize = 0, curr_ref_count = 0;
+	uint32 *containers_filled = &(data_set->num_of_containers_filled);
+	PBlock_with_container block_w_container = (PBlock_with_container)data;
+	PContainer curr_container = NULL;
+	uint32 curr_block_sn = block_w_container->block_sn;
+	uint32 curr_continer_sn = block_w_container->container_sn;
+	Container cmpContainer;
+
+
+	curr_block = &(data_set->block_arr[curr_block_sn]);
+
+	cmpContainer.sn = curr_continer_sn;
+	curr_container = avltree_find(&(data_set->container_tree), &cmpContainer);
+
+	assert(curr_container != NULL);
+	ret = container_del_file(curr_container, curr_file_sn);
+	assert(ret == SUCCESS);
+	ret = block_container_decrease_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
+	assert(ret == SUCCESS);
+	if (curr_ref_count == INDEX_NOT_FOUND)
+	{
+		return;
+	}
+
+	if (curr_ref_count == 0)
+	{
+		if (curr_block->size > data_set->max_container_size)
+		{
+			ret = container_del_block(curr_container, curr_block_sn, data_set->max_container_size);
+		}
+		else
+		{
+			ret = container_del_block(curr_container, curr_block_sn, curr_block->size);
+		}
+		assert(ret == SUCCESS);
+	}
+}
+
 Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 system_sn)
 {
 	Dedup_Error_Val ret = SUCCESS;
@@ -370,40 +470,12 @@ Dedup_Error_Val dedup_data_set_delete_system(PDedup_data_set data_set, uint32 sy
 	PDedup_File curr_file = &(data_set->file_arr[curr_file_sn]);
 	PContainer curr_container = NULL;
 	PBlock curr_block = NULL;
-	PContainer_dynamic_array container_array = &(data_set->container_arr);
+
 
 	/*Loop over all the files*/
 	while (curr_file_sn < data_set->num_of_files && curr_file->sys_num == system_sn)
 	{
-		for (uint32 block_index = 0; block_index < curr_file->block_amount; block_index++)
-		{
-			curr_block_sn = curr_file->block_with_container_array[block_index].block_sn;
-			curr_continer_sn = curr_file->block_with_container_array[block_index].container_sn;
-			curr_block = &(data_set->block_arr[curr_block_sn]);
-			ret = container_dynamic_array_get(container_array, curr_continer_sn, &curr_container);
-			assert(ret == SUCCESS);
-			ret = container_del_file(curr_container, curr_file_sn);
-			assert(ret == SUCCESS);
-			ret = block_container_decrease_ref_count(curr_block, curr_continer_sn, &curr_ref_count);
-			assert(ret == SUCCESS);
-			if (curr_ref_count == INDEX_NOT_FOUND)
-			{
-				continue;
-			}
-
-			if (curr_ref_count == 0)
-			{
-				if (curr_block->size > data_set->max_container_size)
-				{
-					ret = container_del_block(curr_container, curr_block_sn, data_set->max_container_size);
-				}
-				else
-				{
-					ret = container_del_block(curr_container, curr_block_sn, curr_block->size);
-				}
-				assert(ret == SUCCESS);
-			}
-		}
+		avltree_for_each_block(&curr_file->block_with_container_tree, data_set, curr_file_sn, dedup_data_set_delete_files_blocks);
 
 		curr_file_sn++;
 		curr_file = &(data_set->file_arr[curr_file_sn]);
@@ -496,11 +568,14 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set)
 	/*write containers*/
 	uint32 container_sn;
 	PContainer pCurrentContainer = NULL;
+	Container cmpContainer;
 
 	for (container_sn = 0; container_sn <= data_set->num_of_containers_filled; container_sn++)
 	{
-		res = container_dynamic_array_get(&(data_set->container_arr), container_sn, &pCurrentContainer);
-		assert(res == SUCCESS);
+		cmpContainer.sn = container_sn;
+		pCurrentContainer = avltree_find(&(data_set->container_tree), &cmpContainer);
+
+		assert(pCurrentContainer != NULL);
 		res = dedup_data_print_container(data_set, pFile, pCurrentContainer);
 		assert(res == SUCCESS);
 	}
@@ -662,45 +737,10 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 	strcat(data_set_line1, data_set_line2);
 	strcat(data_set_line1, ",");
 
-	uint32 containerNumInArray;
-	uint32 containerSn;
-	uint32 containersCount = 0;
-	PContainer pContainer = NULL;
-
-	for (containerNumInArray = 0; containerNumInArray < pDedup_file->block_amount; containerNumInArray++)
-	{
-		containerSn = pDedup_file->block_with_container_array[containerNumInArray].container_sn;
-		res = container_dynamic_array_get(&data_set->container_arr, containerSn, &pContainer);
-		assert(res == SUCCESS);
-
-		bool new_contaier = true;
-		uint32 i;
-
-		for (i = 0; i < containersIndx; i++)
-		{
-			if (containerSn == container_sns[i])
-			{
-				new_contaier = false;
-			}
-		}
-		if (new_contaier)
-		{
-			/*Add containrSn to containers*/
-			container_sns[containersIndx] = containerSn;
-			containersIndx++;
-			containersCount++;
-
-			sprintf(data_set_line2, "%u", containerSn);
-			strcat(data_set_line3, ",");
-			strcat(data_set_line3, data_set_line2);
-
-			sprintf(data_set_line2, "%u", pContainer->size);
-			strcat(data_set_line3, ",");
-			strcat(data_set_line3, data_set_line2);
-		}
-	}
-	sprintf(data_set_line2, "%u", containersCount);
+	sprintf(data_set_line2, "%u", pDedup_file->container_tree.count);
 	strcat(data_set_line1, data_set_line2);
+
+	avltree_for_each_print_containers(&pDedup_file->container_tree, pFile, data_set, print_container_from_tree_to_file);
 
 	strcat(data_set_line1, data_set_line3);
 
@@ -728,24 +768,8 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 	sprintf(data_set_line2, "%u", pContainer->num_of_files_using);
 	strcat(data_set_line1, data_set_line2);
 
-	uint32 index = 0, value, printed_files = 0;
-	while (printed_files < pContainer->num_of_files_using)
-	{
-		assert(DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR != dynamic_array_get(&pContainer->file_array, index, &value));
-		if (value != REMOVED_SN)
-		{
-			if (strlen(data_set_line1) + strlen(data_set_line2) + 1 >= LINE_LENGTH)
-			{
-				fputs(data_set_line1, pFile);
-				memset(data_set_line1, 0, LINE_LENGTH);
-			}
-			strcat(data_set_line1, ",");
-			sprintf(data_set_line2, "%u", value);
-			strcat(data_set_line1, data_set_line2);
-			printed_files++;
-		}
-		index++;
-	}
+	avltree_for_each_print(&pContainer->file_array, pFile, print_sns_from_tree_to_file);
+
 	strcat(data_set_line1, "\n");
 	fputs(data_set_line1, pFile);
 
@@ -764,25 +788,9 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 	strcat(data_set_line1, ",");
 	sprintf(data_set_line2, "%u", pContainer->num_of_blocks);
 	strcat(data_set_line1, data_set_line2);
-	index = 0;
-	uint32 num_of_blocks_printed = 0;
-	while (num_of_blocks_printed < pContainer->num_of_blocks)
-	{
-		assert(DYNAMIC_ARRAY_OUT_OF_BOUNDS_ERROR != dynamic_array_get(&pContainer->block_array, index, &value));
-		if (value != REMOVED_SN)
-		{
-			if (strlen(data_set_line1) + strlen(data_set_line2) + 1 >= LINE_LENGTH)
-			{
-				fputs(data_set_line1, pFile);
-				memset(data_set_line1, 0, LINE_LENGTH);
-			}
-			strcat(data_set_line1, ",");
-			sprintf(data_set_line2, "%u", value);
-			strcat(data_set_line1, data_set_line2);
-			num_of_blocks_printed++;
-		}
-		index++;
-	}
+
+	avltree_for_each_print(&pContainer->block_array, pFile, print_sns_from_tree_to_file);
+
 	strcat(data_set_line1, "\n");
 	fputs(data_set_line1, pFile);
 	return SUCCESS;
