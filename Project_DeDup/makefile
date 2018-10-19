@@ -2,7 +2,7 @@
 SHELL = /bin/sh
 
 OBJS =  block.o block_with_container.o container.o dedup_containers.o dedup_data_set.o dedup_file.o dynamic_array.o memory_pool.o avltree.o
-CFLAG = -Wall -g -std=c99
+CFLAG = -w -Wall -g -std=c99
 CC = gcc
 INCLUDE = *.h
 LIBS = -lm
