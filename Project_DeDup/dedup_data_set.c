@@ -252,7 +252,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 		data_set->max_num_of_containers = block_amount;
 	}
 
-	uint32 sys_num = atoi(strtok(id_cpy, "_"));
+	uint32 sys_num = strtol(strtok(id_cpy, "_"),NULL,16);//atoi(strtok(id_cpy, "_"));
 	data_set->file_arr[sn].sys_num = sys_num;
 
 	return SUCCESS;

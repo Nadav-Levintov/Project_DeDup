@@ -111,7 +111,7 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * header_
 			num_of_files = atoi(val);
 		if (strcmp(prefix, "# Num directories") == 0)
 			num_of_dirs = atoi(val);
-		if (strcmp(prefix, "# Num blocks") == 0 || strcmp(prefix, "# Num physical files") == 0)
+		if (strcmp(prefix, "# Num blocks") == 0 || strcmp(prefix, "# Num physical files") == 0 || strcmp(prefix, "# Num Blocks") == 0)
 			num_of_blocks = atoi(val);
 		line_index++;
 	}
