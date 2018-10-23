@@ -14,7 +14,7 @@ function log_run {
 	echo -n "${FILE}${CSV},${TOTALS},${POINTERS}," >> runs.csv
 	calc_time_and_ram
 	FILES=`cat ${FILE}${CSV} | grep 'Num files' | cut -d ":" -f 2 | tr -d '[:space:]'`
-	BLOCKS=`cat ${FILE}${CSV} | grep -e 'Num blocks' -e 'Num physical files' | cut -d ":" -f 2 | tr -d '[:space:]'`	
+	BLOCKS=`cat ${FILE}${CSV} | grep -e 'Num blocks' -e 'Num Blocks' -e 'Num physical files' | cut -d ":" -f 2 | tr -d '[:space:]'`	
 	CONTAINERS=`cat ${OUTFILE}${CSV} | grep 'Num of containers' | cut -d ":" -f 2 | tr -d '[:space:]'`
 	echo ",${FILES},${BLOCKS},${CONTAINERS}" >> runs.csv
 }
@@ -56,19 +56,20 @@ for FILE in $( ls -Sr | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
 	run_dedup
 
 	#pointers=128, size=4MB
-	POINTERS="128"
-	run_dedup
+	#POINTERS="128"
+	#run_dedup
 
 	#pointers=0, size=8MB
-    SIZE="8"
-    TOTALS=$((SIZE*MB))
-    POINTERS="0"
-	run_dedup
+    #SIZE="8"
+    #TOTALS=$((SIZE*MB))
+    #POINTERS="0"
+	#run_dedup
 
 	#pointers=128, size=8MB
-    POINTERS="128"
-	run_dedup
+    #POINTERS="128"
+	#run_dedup
 
     mv *${FILE}*.* ${FILE}
 
 done
+echo "All Done"

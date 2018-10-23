@@ -744,7 +744,7 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 
 	strcat(data_set_line1, data_set_line3);
 
-	strcat(data_set_line1, "\n");
+	strcat(data_set_line1, ",\n");
 	fputs(data_set_line1, pFile);
 	return res;
 }
@@ -770,7 +770,7 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 
 	avltree_for_each_print(&pContainer->file_array, pFile, print_sns_from_tree_to_file);
 
-	strcat(data_set_line1, "\n");
+	strcat(data_set_line1, ",\n");
 	fputs(data_set_line1, pFile);
 
 	/* Write second line of the container*/
@@ -791,7 +791,7 @@ Dedup_Error_Val dedup_data_print_container(PDedup_data_set data_set, FILE *pFile
 
 	avltree_for_each_print(&pContainer->block_array, pFile, print_sns_from_tree_to_file);
 
-	strcat(data_set_line1, "\n");
+	strcat(data_set_line1, ",\n");
 	fputs(data_set_line1, pFile);
 	return SUCCESS;
 }
