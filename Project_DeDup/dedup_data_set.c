@@ -585,7 +585,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set)
 	pTempFile = fopen(data_set->file_name_for_dir, "r");
 	assert(pTempFile != NULL);
 	char* prefix = NULL;
-	uint32 systen_sn = 0;
+	uint32 system_sn = 0;
 	memset(data_set_line1, 0, LINE_LENGTH);
 	memset(data_set_line2, 0, LINE_LENGTH);
 	memset(data_set_line3, 0, LINE_LENGTH);
@@ -598,8 +598,8 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set)
 		prefix = strtok(data_set_line2, ",");
 		prefix = strtok(NULL, ",");
 		prefix = strtok(NULL, ",");
-		systen_sn = atoi(strtok(prefix, "_"));
-		if (data_set->system_active[systen_sn])
+		system_sn = strtol(strtok(prefix, "_"), NULL, 16); //atoi(strtok(prefix, "_"));
+		if (data_set->system_active[system_sn])
 		{
 			fputs(data_set_line1, pFile);
 		}
@@ -607,7 +607,7 @@ Dedup_Error_Val dedup_data_set_print_active_systems(PDedup_data_set data_set)
 		while (data_set_line1[curr_line_len] != '\n')
 		{
 			line_ptr = fgets(data_set_line1, LINE_LENGTH, pTempFile);
-			if (data_set->system_active[systen_sn])
+			if (data_set->system_active[system_sn])
 			{
 				fputs(data_set_line1, pFile);
 			}
