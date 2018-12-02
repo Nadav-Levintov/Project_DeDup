@@ -199,7 +199,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 
 				if (!last_line_ended_with_comma)
 				{
-					data_set->block_arr[block_sn].size *= pow_aux(10, strlen(line_ptr));
+					data_set->block_arr[block_sn].size *= pow_aux(10, (uint32)strlen(line_ptr));
 					data_set->block_arr[block_sn].size += atoi(line_ptr);
 					line_ptr = strtok(NULL, ",");
 				}
@@ -226,7 +226,7 @@ Dedup_Error_Val dedup_data_set_add_file(PDedup_data_set data_set, char* line, FI
 				line_ptr = strtok(line, ",");
 				if (!last_line_ended_with_comma) {
 					/* we need to fix block sn */
-					block_sn *= pow_aux(10, strlen(line_ptr));
+					block_sn *= pow_aux(10, (uint32)strlen(line_ptr));
 					block_sn += atoi(line_ptr);
 					line_ptr = strtok(NULL, ",");
 				}
@@ -282,7 +282,7 @@ static void dedup_data_set_analyze_file_blocks_to_containers(void* data, PDedup_
 		if (checkMaxSize > data_set->max_container_size || curr_block->last_container_sn == (*curr_container)->sn)
 		{
 			/* Current container cannot hold the block, lets open a new container
-			* size is to big or to many pointers to block and current container already contains the block */
+			 * size is to big or to many pointers to block and current container already contains the block */
 			if (data_set->max_container_size < curr_block->size)
 			{
 				FILE* error_file = NULL;
@@ -319,7 +319,14 @@ static void dedup_data_set_analyze_file_blocks_to_containers(void* data, PDedup_
 				fclose(error_file);
 			}
 
-			create_container(curr_container, &(data_set->mem_pool), data_set->container_tree.count);
+			if ((*curr_container)->num_of_files_using > data_set->max_pointers_per_container)
+			{
+				data_set->max_pointers_per_container = (*curr_container)->num_of_files_using;
+			}
+			
+			data_set->avg_pointers_per_container += (*curr_container)->num_of_files_using;
+
+			create_container(curr_container, &(data_set->mem_pool), (uint32)data_set->container_tree.count);
 			avltree_add(&(data_set->container_tree), *curr_container, &(data_set->mem_pool));
 
 			assert(ret_val == SUCCESS);
@@ -380,7 +387,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 	uint32 *containers_filled = &(data_set->num_of_containers_filled);
 	uint64 checkMaxSize = 0;
 	PDedup_File curr_file;
-	uint64 container_index = 0;
+	uint32 container_index = 0;
 
 	create_container(&data_set->curr_container, &(data_set->mem_pool), container_index);
 	avltree_add(&(data_set->container_tree), data_set->curr_container, &(data_set->mem_pool));
@@ -670,9 +677,27 @@ Dedup_Error_Val dedup_data_print_header(PDedup_data_set data_set, FILE *pFile)
 	fputs(data_set_line1, pFile);
 	memset(data_set_line1, 0, LINE_LENGTH);
 	memset(data_set_line2, 0, LINE_LENGTH);
-
+		
 	strcat(data_set_line1, "# Num of containers: ");
 	sprintf(data_set_line2, "%u", data_set->num_of_containers_filled + 1);
+	strcat(data_set_line1, data_set_line2);
+	strcat(data_set_line1, "\n");
+	fputs(data_set_line1, pFile);
+	memset(data_set_line1, 0, LINE_LENGTH);
+	memset(data_set_line2, 0, LINE_LENGTH);
+
+	strcat(data_set_line1, "# Max pointers per container: ");
+	sprintf(data_set_line2, "%u", data_set->max_pointers_per_container);
+	strcat(data_set_line1, data_set_line2);
+	strcat(data_set_line1, "\n");
+	fputs(data_set_line1, pFile);
+	memset(data_set_line1, 0, LINE_LENGTH);
+	memset(data_set_line2, 0, LINE_LENGTH);
+
+	data_set->avg_pointers_per_container /= (data_set->num_of_containers_filled + 1);
+
+	strcat(data_set_line1, "# AVG pointers per container: ");
+	sprintf(data_set_line2, "%u", data_set->avg_pointers_per_container);
 	strcat(data_set_line1, data_set_line2);
 	strcat(data_set_line1, "\n");
 	fputs(data_set_line1, pFile);
@@ -737,7 +762,7 @@ Dedup_Error_Val dedup_data_print_dfile(PDedup_data_set data_set, FILE *pFile, PD
 	strcat(data_set_line1, data_set_line2);
 	strcat(data_set_line1, ",");
 
-	sprintf(data_set_line2, "%u", pDedup_file->container_tree.count);
+	sprintf(data_set_line2, "%u", (uint32)pDedup_file->container_tree.count);
 	strcat(data_set_line1, data_set_line2);
 
 	avltree_for_each_print_containers(&pDedup_file->container_tree, pFile, data_set, print_container_from_tree_to_file);

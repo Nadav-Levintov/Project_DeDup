@@ -24,6 +24,8 @@ typedef struct dedup_data_set_t
 	uint32 num_of_systems;
 	uint32 num_of_active_systems;
 	uint32 max_num_of_containers;
+	uint32 max_pointers_per_container;
+	uint32 avg_pointers_per_container;
 	PDedup_File file_arr;
 	PBlock block_arr;
 	PContainer curr_container;
