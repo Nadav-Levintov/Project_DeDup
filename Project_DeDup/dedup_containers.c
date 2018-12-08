@@ -105,8 +105,17 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * header_
 		char* prefix = strtok(containers_line2, ":");
 		char* val = strtok(NULL, "\n");
 		if (strcmp(prefix, "# Output type") == 0)
+		{
 			if (strcmp(val, " block-level") == 0)
+			{
+				printf("Block Level");
 				data_set->is_block_file = true;
+			}
+			else
+			{
+				printf("Physical Level");
+			}
+		}
 		if (strcmp(prefix, "# Num files") == 0)
 			num_of_files = atoi(val);
 		if (strcmp(prefix, "# Num directories") == 0)

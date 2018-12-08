@@ -499,7 +499,12 @@ Dedup_Error_Val dedup_data_set_add_block(PDedup_data_set data_set, char* line, F
 {
 	char* letter = strtok(line, ",");
 	if (!((strcmp(letter, "B") == 0 && data_set->is_block_file) || (strcmp(letter, "P") == 0 && !data_set->is_block_file)))
+	{
+		printf("letter %s \n", letter);
+		printf("is block file? %d \n", data_set->is_block_file);
+		assert(0);
 		return INVALID_ARGUMENT_FAILURE;
+	}
 
 	Dedup_Error_Val res = SUCCESS;
 
