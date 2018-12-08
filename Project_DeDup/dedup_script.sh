@@ -67,8 +67,8 @@ function run_dedup_code {
 	    #POINTERS="128"
 		#run_dedup
 		
-		gzip ${FILE}${CSV}
-	    mv *${FILE}*.* ${FILE}
+		rm ${FILE}${CSV}
+	    #mv *${FILE}*.* ${FILE}
 	
 	done
 }
