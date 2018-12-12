@@ -408,7 +408,12 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 		// check if new system and update sys_array
 		if (curr_file->sys_num != currentSystemNum)
 		{
+			if (curr_file->sys_num < currentSystemNum)
+			{
+				printf("Current sys num is: %d, prev sys num is:", curr_file->sys_num, currentSystemNum);
+			}
 			assert(curr_file->sys_num > currentSystemNum);
+			assert(curr_file->sys_num < MAX_SYSTEMS);
 			data_set->system_active[curr_file->sys_num] = true;
 			data_set->num_of_systems++;
 			data_set->num_of_active_systems++;

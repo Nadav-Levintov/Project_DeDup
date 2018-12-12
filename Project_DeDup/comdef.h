@@ -12,7 +12,7 @@
 #define ID_LENGTH (32)
 #define LINE_LENGTH (1024*32)
 #define PROGRAM_ARG_SIZE (5)
-#define MAX_SYSTEMS (128)
+#define MAX_SYSTEMS (1024)
 #define MAX_FILE_NAME (256)
 #define DYNAMIC_ARRAY_SIZE (128)
 #define POOL_INITIAL_SIZE (128 * 1024 * 1024)

@@ -39,7 +39,7 @@ function run_dedup_code {
 	for FILE in $( ls -Sr | grep ".csv" | cut -f 1 -d . | grep -v "runs" ); do
 	    rm -rf ${FILE}
 		rm -rf time.csv
-		mkdir ${FILE}
+		#mkdir ${FILE}
 	
 		if [[ -a ${FILE}${CSV}${GZ} ]]; then
 			gunzip ${FILE}${CSV}${GZ}
