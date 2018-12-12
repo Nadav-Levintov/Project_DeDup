@@ -410,7 +410,7 @@ Dedup_Error_Val dedup_data_set_analyze_to_containers(PDedup_data_set data_set)
 		{
 			if (curr_file->sys_num < currentSystemNum)
 			{
-				printf("Current sys num is: %d, prev sys num is:", curr_file->sys_num, currentSystemNum);
+				printf("Current sys num is: %d, prev sys num is:%d \n", curr_file->sys_num, currentSystemNum);
 			}
 			assert(curr_file->sys_num > currentSystemNum);
 			assert(curr_file->sys_num < MAX_SYSTEMS);

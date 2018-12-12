@@ -15,7 +15,7 @@ typedef struct dedup_file_t
 	avltree block_with_container_tree;
 	avltree container_tree;
 	char id[ID_LENGTH];
-	uint8 sys_num;
+	uint32 sys_num;
 } Dedup_File, *PDedup_File;
 
 typedef struct block_with_container_t
@@ -37,7 +37,7 @@ typedef struct block_with_container_t
 	
 	@Desc:		Initialize the provided file with the given arguments
 */
-Dedup_Error_Val dedup_file_init(PDedup_File file, uint32 sn, uint8 sys_num, char* id, uint32 dir_sn,
+Dedup_Error_Val dedup_file_init(PDedup_File file, uint32 sn, uint32 sys_num, char* id, uint32 dir_sn,
  uint32 block_amount);
 
 /*

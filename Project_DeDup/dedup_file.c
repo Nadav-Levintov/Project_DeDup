@@ -9,7 +9,7 @@ static int cmp_containers_sns(const void* container1, const void* container2)
 	return *(uint32*)container1 - *(uint32*)container2;
 }
 
-Dedup_Error_Val dedup_file_init(PDedup_File file, uint32 sn, uint8 sys_num, char * id, uint32 dir_sn, uint32 block_amount)
+Dedup_Error_Val dedup_file_init(PDedup_File file, uint32 sn, uint32 sys_num, char * id, uint32 dir_sn, uint32 block_amount)
 {
 	file->sn = sn;
 	file->sys_num = sys_num;

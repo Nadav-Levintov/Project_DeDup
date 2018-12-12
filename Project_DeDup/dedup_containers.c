@@ -108,12 +108,12 @@ Dedup_Error_Val parse_header(FILE * fd, PDedup_data_set data_set, char * header_
 		{
 			if (strcmp(val, " block-level") == 0)
 			{
-				printf("Block Level");
+				printf("Block Level\n");
 				data_set->is_block_file = true;
 			}
 			else
 			{
-				printf("Physical Level");
+				printf("Physical Level\n");
 			}
 		}
 		if (strcmp(prefix, "# Num files") == 0)
